@@ -1,0 +1,4 @@
+# Task list
+# Shift+Tab - toggle list.
+* TODO Repo struct
+** TODO Move requirements to another file.

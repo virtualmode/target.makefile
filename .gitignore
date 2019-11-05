@@ -1,0 +1,48 @@
+# Windows:
+desktop.ini
+
+# Visual Studio temporary files and folders:
+.git/
+.vs/
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.aps
+*.cache
+*.ipch
+*.opensdf
+*.sdf
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+
+# Regular development files:
+*.d
+*.gch
+*.iobj
+*.ipdb
+*.log
+*.o
+*.obj
+*.pch
+
+
+# Build files:
+/example/build/**/*.asm
+/example/build/**/*.idb
+/example/build/**/*.ilk
+/example/build/**/*.pdb
+/example/build/**/*.s
+
+# Do not track project binary files:
+/example/bin/cl
+/example/bin/cl.exe
+/example/build/*/cl
+/example/build/*/cl.exe
+
+/example/build/*/libclib.a
+/example/build/*/clib
+/example/build/*/clib.a
+/example/build/*/clib.lib
