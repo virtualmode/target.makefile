@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="static.c" />
+    <ClCompile Include="Threading\thread.c">
+      <Filter>Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\globalcpp.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\globalc.c">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="static.h" />
+    <ClInclude Include="Threading\thread.h">
+      <Filter>Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\globalcpp.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\globalc.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Threading">
+      <UniqueIdentifier>{0210846b-274a-431c-926b-1b019d17d807}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{83b61341-7ceb-4cac-b767-872b78f61c08}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

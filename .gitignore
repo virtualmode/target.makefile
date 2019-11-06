@@ -28,6 +28,9 @@ obj/
 *.obj
 *.pch
 
+# Make stack dump:
+*.stackdump
+
 
 # Build files:
 /example/build/**/*.asm
