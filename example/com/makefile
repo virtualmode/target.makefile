@@ -1,5 +1,10 @@
 # Makefile for the loader.
 
-#include ../include/target.makefile
+include ../../target.makefile
+
+.PHONY: all
+all:
+	@echo "Command done." >&2
 
 # End of makefile.
+# Конец файла сборки.

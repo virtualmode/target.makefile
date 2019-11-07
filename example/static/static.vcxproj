@@ -82,9 +82,9 @@
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>..\build\x86-windows-msc-$(Configuration)-static\</OutDir>
     <IntDir>..\build\x86-windows-msc-$(Configuration)-static\</IntDir>
-    <NMakeBuildCommandLine>make DEBUG=1</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild DEBUG=1</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean DEBUG=1</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -92,9 +92,9 @@
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>..\build\amd64-windows-msc-$(Configuration)-static\</OutDir>
     <IntDir>..\build\amd64-windows-msc-$(Configuration)-static\</IntDir>
-    <NMakeBuildCommandLine>make DEBUG=1</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild DEBUG=1</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean DEBUG=1</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -102,20 +102,20 @@
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>..\build\x86-windows-msc-$(Configuration)-static\</OutDir>
     <IntDir>..\build\x86-windows-msc-$(Configuration)-static\</IntDir>
-    <NMakeBuildCommandLine>make</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
-	<NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
+    <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>static.lib</NMakeOutput>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>..\build\amd64-windows-msc-$(Configuration)-static\</OutDir>
     <IntDir>..\build\amd64-windows-msc-$(Configuration)-static\</IntDir>
-    <NMakeBuildCommandLine>make</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
-	<NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
+    <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

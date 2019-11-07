@@ -1,6 +1,7 @@
 # Project makefile.
 
 # Prepare some macroses before include:
+DEBUG := 1
 TARGET_PATHS := Core/ Threading/
 TARGET_INTERMEDIATE_PATH := obj/
 TARGET_OUTPUT_PATH := bin/
@@ -15,8 +16,7 @@ TARGET_OUTPUT_PATH := bin/
 
 #TARGET_ENTRY := main
 
-include ../../include/target.makefile # Global makefile with common functional.
-
+include ../../target.makefile # Global makefile with common functional.
 
 
 #BUILD_PATH = ../../cl/build/
@@ -36,15 +36,10 @@ include ../../include/target.makefile # Global makefile with common functional.
 # Default phony target of copying builded files to output directory:
 .PHONY: all
 all:
-	@echo ALL
-	@echo $(AS)
-	@echo $(CC)
-	@echo $(CXX)
-	@echo $(LD)
-	@echo $(AR)
+	@echo "Static library done." >&2
 
-clib$(EXT_LIB): $(TARGET_OBJECTS)
-	$(LD) $(LDFLAGS)
+#clib$(EXT_LIB): $(TARGET_OBJECTS)
+#	$(LD) $(LDFLAGS)
 
 ## Prepare some macroses before include:
 #BUILD_PATH = ../build/
@@ -90,3 +85,4 @@ clib$(EXT_LIB): $(TARGET_OBJECTS)
 
 
 # End of makefile.
+# Конец файла сборки.

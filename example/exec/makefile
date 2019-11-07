@@ -1,10 +1,10 @@
 # Project makefile.
 
 # Prepare some macroses before include:
-TARGET_PATHS := shell/
+TARGET_PATHS := Shell/
 TARGET_INTERMEDIATE_PATH := obj/
 TARGET_OUTPUT_PATH := bin/
-TARGET_INCLUDE_PATHS := ../../clib/clib/
+TARGET_INCLUDE_PATHS := ../static/
 #TARGET_LIB_PATHS := $(TARGET_INTERMEDIATE_PATH)
 #TARGET_LIB_NAMES := example1 example2 example3
 
@@ -15,7 +15,7 @@ TARGET_INCLUDE_PATHS := ../../clib/clib/
 
 TARGET_ENTRY := main
 
-include ../../include/target.makefile # Global makefile with common functional.
+include ../../target.makefile # Global makefile with common functional.
 
 
 # Project specified macroses:
@@ -24,14 +24,9 @@ include ../../include/target.makefile # Global makefile with common functional.
 
 # Default phony target of copying builded files to output directory:
 .PHONY: all
-all: cl clib
-	@echo "all done."
+all:
+	@echo "Executable done." >&2
 
-clib:
-	@echo "clib done."
-
-cl:
-	@echo "cl done."
 #	rm -f *.bak
 
 ## Prepare some macroses before include:
@@ -82,3 +77,4 @@ cl:
 
 
 # End of makefile.
+# Конец файла сборки.

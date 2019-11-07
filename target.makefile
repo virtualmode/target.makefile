@@ -243,17 +243,17 @@ ifeq ($(TARGET_ARCHITECTURE),)
 endif
 
 # TODO: Добавление текущего каталога в списки может оказаться необязательным.
-ifdef $(TARGET_PATHS)
+ifdef TARGET_PATHS
 	TARGET_PATHS := ./ $(TARGET_PATHS)
 else
 	TARGET_PATHS := ./
 endif
-ifdef $(TARGET_INCLUDE_PATHS)
+ifdef TARGET_INCLUDE_PATHS
 	TARGET_INCLUDE_PATHS := ./ $(TARGET_INCLUDE_PATHS)
 else
 	TARGET_INCLUDE_PATHS := ./
 endif
-ifdef $(TARGET_LIB_PATHS)
+ifdef TARGET_LIB_PATHS
 	TARGET_LIB_PATHS := ./ $(TARGET_LIB_PATHS)
 else
 	TARGET_LIB_PATHS := ./
@@ -514,5 +514,5 @@ SUFFIXES :=
 .f.o:
 
 
-
+# End of makefile.
 # Конец файла сборки.
