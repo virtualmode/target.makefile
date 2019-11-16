@@ -23,12 +23,13 @@
     <None Include="makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="com.c" />
+    <ClCompile Include="binary.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{9FAD5009-4E5A-4875-846C-519EA2B3C9F5}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
+    <ProjectName>binary</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -70,36 +71,36 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeOutput>command.com</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\x86-windows-msc-$(Configuration)-com\</IntDir>
-    <OutDir>..\build\x86-windows-msc-$(Configuration)-com\</OutDir>
+    <NMakeOutput>binary.com</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeOutput>command.com</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\amd64-windows-msc-$(Configuration)-com\</IntDir>
-    <OutDir>..\build\amd64-windows-msc-$(Configuration)-com\</OutDir>
+    <NMakeOutput>binary.com</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeOutput>command.com</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\x86-windows-msc-$(Configuration)-com\</IntDir>
-    <OutDir>..\build\x86-windows-msc-$(Configuration)-com\</OutDir>
+    <NMakeOutput>binary.com</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NMakeOutput>command.com</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\amd64-windows-msc-$(Configuration)-com\</IntDir>
-    <OutDir>..\build\amd64-windows-msc-$(Configuration)-com\</OutDir>
+    <NMakeOutput>binary.com</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

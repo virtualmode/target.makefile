@@ -16,12 +16,12 @@
 #	CONFIGURATION - make argument to setup build configuration (default: release):
 #		debug
 #		release
-#	TARGET_ARCHITECTURE - preferred architecture to build output binary file (default: $(HOST_ARCHITECTURE)):
+#	PLATFORM - preferred platform to build output binary file (default: $(HOST_PLATFORM)):
 #		amd64
 #		arm
 #		x86
-#	TARGET_PLATFORM - additional architecture features.
-#	TARGET_OS - operating system specific headers for target (default: $(HOST_OS)):
+#	ARCHITECTURE - processor architecture (optional and empty by default).
+#	SYSTEM - operating system specific headers for target (default: $(HOST_SYSTEM)):
 #		none - clean architecture code without headers.
 #		windows - known operating system.
 #		posix - POSIX-compatible operating system.
@@ -43,16 +43,16 @@
 
 
 # Automatically initialized macroses that can be used:
-#	EXT_EXE - executable file extension.
-#	EXT_OBJ - object file extension.
-#	EXT_DLL - dynamic link library extension.
-#	EXT_LIB - static library extension.
-#	EXT_PCH - precompiled header file extension.
-#	EXT_ASM - assembler listing file extension.
-#	EXT_BIN - unknown binary file extension.
+#	EXE - executable file extension.
+#	OBJ - object file extension.
+#	DLL - dynamic link library extension.
+#	LIB - static library extension.
+#	PCH - precompiled header file extension.
+#	ASM - assembler listing file extension.
+#	BIN - unknown binary file extension.
 
-#	HOST_ARCHITECTURE - current architecture.
-#	HOST_OS - current operating system.
+#	HOST_PLATFORM - current platform.
+#	HOST_SYSTEM - current operating system.
 
 #	AR - archive-maintaining program.
 #		ar - Unix archiver.
@@ -72,16 +72,8 @@
 #		gcc - GNU Compiler Collection.
 #		link - Microsoft linker.
 #	LDFLAGS - linker flags.
+#	RM - command to remove a file (default: rm -f).
 
-
-# Obsolete or unused macroses:
-#	CPP - program for running the C PreProcessor, with results to standard output (default: $(CC) -E).
-#	CPPFLAGS - flags for the C PreProcessor.
-#	CO - name of the program that extracts a file from RCS (default: co).
-#	COFLAGS - flags for the RCS co program.
-#	FC - name of the FORTRAN compiler (default: f77).
-#	FFLAGS - flags for the FORTRAN compiler.
-#	RM - name of the command to delete a file (default: rm -f).
 # This is obsolete instruction because target makefile can be included multiple times now. Default target:
 #.DEFAULT_GOAL = all
 
@@ -109,7 +101,7 @@ LINK_VERSIONS = 001 010
 # Общие флаги пакета компиляторов MSVC:
 MSVC_INCLUDE_FLAGS := $(addsuffix ",$(addprefix /I",$(TARGET_INCLUDE_PATHS)))
 MSVC_LIB_PATHS_FLAGS := $(addsuffix ",$(addprefix /LIBPATH:",$(TARGET_LIB_PATHS)))
-MSVC_LIB_NAMES_FLAGS := $(addsuffix $(EXT_LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
+MSVC_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
 # Данные программы проверены, предсказуемы и наиболее оптимизированы в отличие от современных наборов.
@@ -205,13 +197,13 @@ SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(cal
 
 # Определение текущей операционной системы и архитектуры:
 ifeq ($(OS),Windows_NT)
-	HOST_OS := windows
+	HOST_SYSTEM := windows
 	ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
-		HOST_ARCHITECTURE := amd64
+		HOST_PLATFORM := amd64
 	else ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-		HOST_ARCHITECTURE := amd64
+		HOST_PLATFORM := amd64
 	else ifeq ($(PROCESSOR_ARCHITECTURE),x86)
-		HOST_ARCHITECTURE := x86
+		HOST_PLATFORM := x86
 	endif
 
 else
@@ -219,14 +211,14 @@ else
 	UNAME_S := $(shell uname -s)
 	UNAME_P := $(shell uname -p)
 	ifneq ($(filter Linux Darwin,$(UNAME_S)),)
-		HOST_OS := posix;
+		HOST_SYSTEM := posix;
 	endif
 	ifeq ($(UNAME_P),x86_64)
-		HOST_ARCHITECTURE := amd64
+		HOST_PLATFORM := amd64
 	else ifneq ($(filter %86, $(UNAME_P)),)
-		HOST_ARCHITECTURE := x86
+		HOST_PLATFORM := x86
 	else ifneq ($(filter arm%,$(UNAME_P)),)
-		HOST_ARCHITECTURE := arm
+		HOST_PLATFORM := arm
 	endif
 endif
 
@@ -235,11 +227,11 @@ ifeq ($(CONFIGURATION),)
 	CONFIGURATION := release
 endif
 
-ifeq ($(TARGET_OS),)
-	TARGET_OS := $(HOST_OS)
+ifeq ($(SYSTEM),)
+	SYSTEM := $(HOST_SYSTEM)
 endif
-ifeq ($(TARGET_ARCHITECTURE),)
-	TARGET_ARCHITECTURE := $(HOST_ARCHITECTURE)
+ifeq ($(PLATFORM),)
+	PLATFORM := $(HOST_PLATFORM)
 endif
 
 # TODO: Добавление текущего каталога в списки может оказаться необязательным.
@@ -261,55 +253,55 @@ endif
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
-EXT_BIN := .bin
-EXT_COM := .com
-EXT_DEP := .d
-EXT_SYS := .sys
+BIN := .bin
+COM := .com
+DEP := .d
+SYS := .sys
 # Установка расширений по умолчанию для поддерживаемых типов файлов:
-EXT_ASM :=
-EXT_DLL :=
-EXT_EXE :=
-EXT_LIB :=
-EXT_OBJ :=
-EXT_PCH :=
+ASM :=
+DLL :=
+EXE :=
+LIB :=
+OBJ :=
+PCH :=
 
 # Настройка сборки под выбранную платформу:
-ifeq ($(TARGET_OS),none)
+ifeq ($(SYSTEM),none)
 	# Расширения абстрактной операционной системы:
-	EXT_ASM := .a
-	EXT_BIN := .b
-	EXT_DLL := .s
-	EXT_LIB := .l
-	EXT_OBJ := .o
-	EXT_PCH := .p
+	ASM := .a
+	BIN := .b
+	DLL := .s
+	LIB := .l
+	OBJ := .o
+	PCH := .p
 	# Для сборки низкоуровнего кода под определённое оборудование подходят более старые компиляторы. Чтобы их использовать,
 	# необходимо вручную сменить переменные с настройками, или перед запуском сборки установить переменную окружения PATH.
-	ifeq ($(HOST_OS),windows)
+	ifeq ($(HOST_SYSTEM),windows)
 		DEFAULT_TOOLS := $(DEFAULT_TOOLS_WINDOWS)
 	else
 		DEFAULT_TOOLS := $(DEFAULT_TOOLS_POSIX)
 	endif
 
-else ifeq ($(TARGET_OS),windows)
-	EXT_ASM := .asm
-	EXT_DLL := .dll
-	EXT_EXE := .exe
-	EXT_LIB := .lib
-	EXT_OBJ := .obj
-	EXT_PCH := .pch
+else ifeq ($(SYSTEM),windows)
+	ASM := .asm
+	DLL := .dll
+	EXE := .exe
+	LIB := .lib
+	OBJ := .obj
+	PCH := .pch
 	# Выбор компиляторов по умолчанию:
-	ifeq ($(HOST_OS),windows)
+	ifeq ($(HOST_SYSTEM),windows)
 		DEFAULT_TOOLS := $(DEFAULT_TOOLS_WINDOWS)
 	else
 		DEFAULT_TOOLS := $(DEFAULT_TOOLS_POSIX)
 	endif
 
 else
-	EXT_ASM := .s
-	EXT_DLL := .so
-	EXT_LIB := .a
-	EXT_OBJ := .o
-	EXT_PCH := .gch
+	ASM := .s
+	DLL := .so
+	LIB := .a
+	OBJ := .o
+	PCH := .gch
 	DEFAULT_TOOLS := $(DEFAULT_TOOLS_POSIX)
 
 endif
@@ -318,41 +310,45 @@ endif
 # необходимо закомментировать и настроить флаги вручную.
 $(eval $(call SET_TOOLS,$(DEFAULT_TOOLS)))
 
-$(info DEBUG = $(CC_PREFIX) $(CFLAGS))
 
-
-# Подготовка сборки произведена. Есть смысл вывести отладочную информацию:
+# Подготовка сборки произведена. Вывод отладочной информации.
+# Целевая конфигурация:
 ifdef DEBUG
-$(info ) # Конфигурация и направление сборки.
-$(info $(SPACE)            CONFIGURATION = $(CONFIGURATION))
-$(info $(SPACE)        HOST_ARCHITECTURE = $(HOST_ARCHITECTURE))
-$(info $(SPACE)                  HOST_OS = $(HOST_OS))
-$(info $(SPACE)      TARGET_ARCHITECTURE = $(TARGET_ARCHITECTURE))
-$(info $(SPACE)                TARGET_OS = $(TARGET_OS))
-$(info $(SPACE)                  EXT_XXX = $(EXT_BIN) $(EXT_COM) $(EXT_DEP) $(EXT_SYS) $(EXT_ASM) $(EXT_DLL) $(EXT_EXE) $(EXT_LIB) $(EXT_OBJ) $(EXT_PCH))
-$(info ) # Параметры сборки.
-$(info $(SPACE)             TARGET_PATHS = $(TARGET_PATHS))
-$(info $(SPACE) TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
-$(info $(SPACE)       TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
-$(info $(SPACE)     TARGET_INCLUDE_PATHS = $(TARGET_INCLUDE_PATHS))
-$(info $(SPACE)         TARGET_LIB_PATHS = $(TARGET_LIB_PATHS))
-$(info $(SPACE)         TARGET_LIB_NAMES = $(TARGET_LIB_NAMES))
-$(info $(SPACE)      TARGET_PCH_C_HEADER = $(TARGET_PCH_C_HEADER))
-$(info $(SPACE)      TARGET_PCH_C_SOURCE = $(TARGET_PCH_C_SOURCE))
-$(info $(SPACE)    TARGET_PCH_CPP_HEADER = $(TARGET_PCH_CPP_HEADER))
-$(info $(SPACE)    TARGET_PCH_CPP_SOURCE = $(TARGET_PCH_CPP_SOURCE))
-$(info $(SPACE)             TARGET_ENTRY = $(TARGET_ENTRY))
-$(info ) # Вычисленные параметры.
+$(info )
+$(info $(SPACE)                   CONFIGURATION = $(CONFIGURATION))
+$(info $(SPACE)           PLATFORM ARCHITECTURE = $(PLATFORM) $(ARCHITECTURE))
+$(info $(SPACE)                          SYSTEM = $(SYSTEM))
+$(info $(SPACE)                      EXTENSIONS = $(BIN) $(COM) $(DEP) $(SYS) $(ASM) $(DLL) $(EXE) $(LIB) $(OBJ) $(PCH))
 
-$(info $(SPACE)                       AR = $(AR) $(ARFLAGS))
-$(info $(SPACE)                       AS = $(AS) $(ASFLAGS))
-$(info $(SPACE)                       CC = $(CC) $(CFLAGS))
-$(info $(SPACE)                      CXX = $(CXX) $(CXXFLAGS))
-$(info $(SPACE)                       LD = $(LD) $(LDFLAGS))
-$(info $(SPACE)                      CPP = $(CPP) $(CPPFLAGS))
-$(info $(SPACE)                       CO = $(CO) $(COFLAGS))
-$(info $(SPACE)                       FC = $(FC) $(FFLAGS))
-$(info $(SPACE)                       RM = $(RM))
+# Текущая конфигурация:
+$(info )
+$(info $(SPACE) HOST_PLATFORM HOST_ARCHITECTURE = $(HOST_PLATFORM) $(HOST_ARCHITECTURE))
+$(info $(SPACE)                     HOST_SYSTEM = $(HOST_SYSTEM))
+
+# Параметры сборки:
+$(info )
+$(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
+$(info $(SPACE)        TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
+$(info $(SPACE)              TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
+$(info $(SPACE)            TARGET_INCLUDE_PATHS = $(TARGET_INCLUDE_PATHS))
+$(info $(SPACE)                TARGET_LIB_PATHS = $(TARGET_LIB_PATHS))
+$(info $(SPACE)                TARGET_LIB_NAMES = $(TARGET_LIB_NAMES))
+$(info $(SPACE)             TARGET_PCH_C_HEADER = $(TARGET_PCH_C_HEADER))
+$(info $(SPACE)             TARGET_PCH_C_SOURCE = $(TARGET_PCH_C_SOURCE))
+$(info $(SPACE)           TARGET_PCH_CPP_HEADER = $(TARGET_PCH_CPP_HEADER))
+$(info $(SPACE)           TARGET_PCH_CPP_SOURCE = $(TARGET_PCH_CPP_SOURCE))
+$(info $(SPACE)                    TARGET_ENTRY = $(TARGET_ENTRY))
+
+# Вычисленные параметры:
+$(info )
+
+$(info $(SPACE)            AR_PREFIX AR ARFLAGS = $(AR_PREFIX) $(AR) $(ARFLAGS))
+$(info $(SPACE)            AS_PREFIX AS ASFLAGS = $(AS_PREFIX) $(AS) $(ASFLAGS))
+$(info $(SPACE)             CC_PREFIX CC CFLAGS = $(CC_PREFIX) $(CC) $(CFLAGS))
+$(info $(SPACE)         CXX_PREFIX CXX CXXFLAGS = $(CXX_PREFIX) $(CXX) $(CXXFLAGS))
+$(info $(SPACE)            LD_PREFIX LD LDFLAGS = $(LD_PREFIX) $(LD) $(LDFLAGS))
+$(info $(SPACE)                              RM = $(RM))
+$(info )
 endif
 
 

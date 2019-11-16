@@ -69,30 +69,38 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(SolutionDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(SolutionDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(SolutionDir)</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(SolutionDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(SolutionDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(SolutionDir)</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(SolutionDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(SolutionDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(SolutionDir)</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(SolutionDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(SolutionDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(SolutionDir)</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>bin\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

@@ -1,34 +1,36 @@
 # Example of solution makefile.
-# Пример файла сборки решения.
+# Пример файла сборки всего решения.
+# Можно не использовать этот проект в Visual Studio, а
+# написать отдельные сборочные файлы для каждого из проектов.
 
-DEBUG := 1
-
-include ../target.makefile # Global makefile with common functional.
-
+# Набор целей:
 usage:
 	@echo " " >&2
-	@echo "Example project makefile." >&2
+	@echo "Solution makefile example." >&2
 	@echo " " >&2
 	@echo "Usage:" >&2
-	@echo "	make clean   # Remove all assembling results." >&2
+	@echo "	make clean   # Removes all output and intermediate results." >&2
 	@echo " " >&2
 	@echo " " >&2
 
-command.com:
-	@echo "Building command example..." >&2
-	cd com && $(MAKE) $@ # Here you can write target also.
+.PHONY: binary
+binary:
+	@echo "Building binary example..." >&2
+	cd binary && $(MAKE) all # Here you can write current target also by specifying $@ after $(MAKE).
 
-exec.exe:
+.PHONY: executable
+executable:
 	@echo "Building executable example..." >&2
-	cd exec && $(MAKE) $@
+	cd executable && $(MAKE) all
 
-static.lib:
+.PHONY: static
+static:
 	@echo "Building static library example..." >&2
-	cd static && $(MAKE) $@
+	cd static && $(MAKE) all
 
-#.PHONY: all
-all: command.com exec.exe static.lib
-	@echo "Building example solution:" >&2
+.PHONY: all
+all: binary executable static
+	@echo "Example ready." >&2
 
 # Rebuild target (build dependencies):
 .PHONY: rebuild
@@ -37,12 +39,9 @@ rebuild: all
 # Change directory -C and run clean for each target (like cd ./target && $(MAKE) $@):
 .PHONY: clean
 clean:
-	$(MAKE) $(MAKECMDGOALS) -C "com"
-	$(MAKE) $(MAKECMDGOALS) -C "exec"
-	$(MAKE) $(MAKECMDGOALS) -C "static"
-
-# TODO: Надо разобраться, можно ли получить расширение:
-$(info TARGETS = $(MAKECMDGOALS))
+	$(MAKE) $(MAKECMDGOALS) -C binary
+	$(MAKE) $(MAKECMDGOALS) -C executable
+	$(MAKE) $(MAKECMDGOALS) -C static
 
 # End of makefile.
 # Конец файла сборки.

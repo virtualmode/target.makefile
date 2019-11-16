@@ -5,14 +5,19 @@ VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "static", "static\static.vcxproj", "{017A4D05-5FC5-4B21-A3E1-85AC613EDB3E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exec", "exec\exec.vcxproj", "{7B5AAFB0-5E64-4270-A49A-3F135C1569E2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "executable", "executable\executable.vcxproj", "{7B5AAFB0-5E64-4270-A49A-3F135C1569E2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{017A4D05-5FC5-4B21-A3E1-85AC613EDB3E} = {017A4D05-5FC5-4B21-A3E1-85AC613EDB3E}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "com", "com\com.vcxproj", "{9FAD5009-4E5A-4875-846C-519EA2B3C9F5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binary", "binary\binary.vcxproj", "{9FAD5009-4E5A-4875-846C-519EA2B3C9F5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example", "example.vcxproj", "{013F2C08-29F8-4FDB-8D23-D915F754440E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{017A4D05-5FC5-4B21-A3E1-85AC613EDB3E} = {017A4D05-5FC5-4B21-A3E1-85AC613EDB3E}
+		{9FAD5009-4E5A-4875-846C-519EA2B3C9F5} = {9FAD5009-4E5A-4875-846C-519EA2B3C9F5}
+		{7B5AAFB0-5E64-4270-A49A-3F135C1569E2} = {7B5AAFB0-5E64-4270-A49A-3F135C1569E2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,9 +52,13 @@ Global
 		{9FAD5009-4E5A-4875-846C-519EA2B3C9F5}.Release|x86.ActiveCfg = Release|Win32
 		{9FAD5009-4E5A-4875-846C-519EA2B3C9F5}.Release|x86.Build.0 = Release|Win32
 		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Debug|x64.ActiveCfg = Debug|x64
+		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Debug|x64.Build.0 = Debug|x64
 		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Debug|x86.ActiveCfg = Debug|Win32
+		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Debug|x86.Build.0 = Debug|Win32
 		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Release|x64.ActiveCfg = Release|x64
+		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Release|x64.Build.0 = Release|x64
 		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Release|x86.ActiveCfg = Release|Win32
+		{013F2C08-29F8-4FDB-8D23-D915F754440E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

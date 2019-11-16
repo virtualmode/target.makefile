@@ -24,7 +24,7 @@
     <ClCompile Include="Shell\shell.c" />
     <ClCompile Include="Shell\tray.c" />
     <ClCompile Include="Shell\stub.cpp" />
-    <ClCompile Include="exec.c" />
+    <ClCompile Include="executable.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />
@@ -35,12 +35,13 @@
     <ClInclude Include="Shell\shell.h" />
     <ClInclude Include="Shell\stub.h" />
     <ClInclude Include="Shell\tray.h" />
-    <ClInclude Include="exec.h" />
+    <ClInclude Include="executable.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7B5AAFB0-5E64-4270-A49A-3F135C1569E2}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
+    <ProjectName>executable</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -82,39 +83,39 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeOutput>exec.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\x86-windows-msc-$(Configuration)-exec\</IntDir>
-    <OutDir>..\build\x86-windows-msc-$(Configuration)-exec\</OutDir>
+    <NMakeOutput>executable.exe</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeOutput>exec.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\amd64-windows-msc-$(Configuration)-exec\</IntDir>
-    <OutDir>..\build\amd64-windows-msc-$(Configuration)-exec\</OutDir>
+    <NMakeOutput>executable.exe</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeOutput>exec.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\x86-windows-msc-$(Configuration)-exec\</IntDir>
-    <OutDir>..\build\x86-windows-msc-$(Configuration)-exec\</OutDir>
+    <NMakeOutput>executable.exe</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NMakeOutput>exec.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir)</NMakeCleanCommandLine>
-    <IntDir>..\build\amd64-windows-msc-$(Configuration)-exec\</IntDir>
-    <OutDir>..\build\amd64-windows-msc-$(Configuration)-exec\</OutDir>
+    <NMakeOutput>executable.exe</NMakeOutput>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
