@@ -82,9 +82,9 @@
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -92,9 +92,9 @@
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -102,9 +102,9 @@
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -112,9 +112,9 @@
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <NMakeIncludeSearchPath>.\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <ItemDefinitionGroup>

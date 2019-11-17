@@ -84,36 +84,36 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\$(Configuration)\</IntDir>
     <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=debug -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\$(Configuration)\</IntDir>
     <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\$(Configuration)\</IntDir>
     <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>make clean CONFIGURATION=release -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\$(Configuration)\</IntDir>
     <OutDir>bin\$(Configuration)\</OutDir>
     <NMakeIncludeSearchPath>.\;..\static\</NMakeIncludeSearchPath>

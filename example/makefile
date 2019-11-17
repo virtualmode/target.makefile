@@ -3,13 +3,18 @@
 # Можно не использовать этот проект в Visual Studio, а
 # написать отдельные сборочные файлы для каждого из проектов.
 
+# Include target.makefile to use $(RM) macros:
+include ../target.makefile
+
 # Набор целей:
 usage:
 	@echo " " >&2
 	@echo "Solution makefile example." >&2
 	@echo " " >&2
 	@echo "Usage:" >&2
-	@echo "	make clean   # Removes all output and intermediate results." >&2
+	@echo "	make all       # Builds all example projects." >&2
+	@echo "	make rebuild   # Rebuilds all targets." >&2
+	@echo "	make clean     # Removes all output and intermediate results." >&2
 	@echo " " >&2
 	@echo " " >&2
 
@@ -42,6 +47,7 @@ clean:
 	$(MAKE) $(MAKECMDGOALS) -C binary
 	$(MAKE) $(MAKECMDGOALS) -C executable
 	$(MAKE) $(MAKECMDGOALS) -C static
+	cd bin && $(RM) "bin/*"
 
 # End of makefile.
 # Конец файла сборки.

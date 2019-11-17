@@ -162,8 +162,8 @@ UPPERCASE = $(if $1,$$(subst $(word 1,$1),$(word 2,$1),$(call UPPERCASE,$(wordli
 # Проверка цепочки версий и возвращение минимальной поддерживаемой.
 # @param $1 Множество поддерживаемых версий и требуемая в отсортированном виде.
 # @param $2 Требуемая версия.
-# @return Минимальная поддерживаемая версия из множества. Пустое значение, если версия не поддерживается.
-CHECK_VERSION = $(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2))
+# @return Минимальная поддерживаемая версия из множества. Пустое значение, если версия не поддерживается или не была корректно определена.
+CHECK_VERSION = $(if $2,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2)),)
 
 # Вычисление префикса флагов выбранной утилиты.
 # @param $1 Имя проверяемой утилиты без пути и расширения.
@@ -205,9 +205,11 @@ ifeq ($(OS),Windows_NT)
 	else ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 		HOST_PLATFORM := x86
 	endif
+	# Native Windows command to remove files: $(RM) "folder/*"
+	RM := del /f /s /q
 
+# Операционная система POSIX:
 else
-	# Предположительно POSIX операционная система:
 	UNAME_S := $(shell uname -s)
 	UNAME_P := $(shell uname -p)
 	ifneq ($(filter Linux Darwin,$(UNAME_S)),)
@@ -220,6 +222,8 @@ else
 	else ifneq ($(filter arm%,$(UNAME_P)),)
 		HOST_PLATFORM := arm
 	endif
+	# To remove folder content use: $(RM) "folder/*"
+	RM := rm -rf
 endif
 
 # Setup default parameters:
@@ -235,21 +239,21 @@ ifeq ($(PLATFORM),)
 endif
 
 # TODO: Добавление текущего каталога в списки может оказаться необязательным.
-ifdef TARGET_PATHS
-	TARGET_PATHS := ./ $(TARGET_PATHS)
-else
-	TARGET_PATHS := ./
-endif
-ifdef TARGET_INCLUDE_PATHS
-	TARGET_INCLUDE_PATHS := ./ $(TARGET_INCLUDE_PATHS)
-else
-	TARGET_INCLUDE_PATHS := ./
-endif
-ifdef TARGET_LIB_PATHS
-	TARGET_LIB_PATHS := ./ $(TARGET_LIB_PATHS)
-else
-	TARGET_LIB_PATHS := ./
-endif
+#ifdef TARGET_PATHS
+#	TARGET_PATHS := ./ $(TARGET_PATHS)
+#else
+#	TARGET_PATHS := ./
+#endif
+#ifdef TARGET_INCLUDE_PATHS
+#	TARGET_INCLUDE_PATHS := ./ $(TARGET_INCLUDE_PATHS)
+#else
+#	TARGET_INCLUDE_PATHS := ./
+#endif
+#ifdef TARGET_LIB_PATHS
+#	TARGET_LIB_PATHS := ./ $(TARGET_LIB_PATHS)
+#else
+#	TARGET_LIB_PATHS := ./
+#endif
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
