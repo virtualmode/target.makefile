@@ -1,10 +1,11 @@
-# Project makefile.
+# Static library example makefile.
+
+DEBUG := 1
 
 # Prepare some macroses before include:
-DEBUG := 1
 TARGET_PATHS := Core/ Threading/
-TARGET_INTERMEDIATE_PATH := obj/
-TARGET_OUTPUT_PATH := bin/
+TARGET_INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
+TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
 #TARGET_INCLUDE_PATHS :=
 #TARGET_LIB_PATHS := $(TARGET_INTERMEDIATE_PATH)
 #TARGET_LIB_NAMES := example1 example2 example3
@@ -32,12 +33,6 @@ include ../../target.makefile # Global makefile with common functional.
 # Project specified macroses:
 #SRC_BIN_TARGET = $(BUILD_OUTPUT_PATH)$(SRC_TARGET)
 
-
-# Default phony target of copying builded files to output directory:
-.PHONY: all
-all:
-	@echo "Static library done." >&2
-
 #clib$(EXT_LIB): $(TARGET_OBJECTS)
 #	$(LD) $(LDFLAGS)
 
@@ -62,26 +57,25 @@ all:
 ## Default phony target of copying builded files to output directory:
 #.PHONY: all
 #all: $(SRC_OUTPUT_TARGET)
+#clean: #@rm -f $(addsuffix *,$(addprefix $(BUILD_INTERMEDIATE_PATH),$(SRC_PATHS))) 2> /dev/null || true
 
-## Cleaning target:
-## NOTE: Additional /dev/null redirection and true flag is used for hiding and ignoring return errors.
-#.PHONY: clean
-#clean:
-#	@rm -f $(addsuffix *,$(addprefix $(BUILD_INTERMEDIATE_PATH),$(SRC_PATHS))) 2> /dev/null || true
+static$(LIB):
+	@echo stub static > $(TARGET_INTERMEDIATE_PATH)static$(LIB)
 
-## Rebuild target (build dependencies):
-#.PHONY: rebuild
-#rebuild: all
+# Default phony target of copying builded files to output directory:
+.PHONY: all
+all: static$(LIB)
+	@echo "Static library done." >&2
 
-## Installation target:
-#.PHONY: install
-#install:
-#	@echo "Installation target isn't implemented."
+# Rebuild target (build dependencies):
+.PHONY: rebuild
+rebuild: all
 
-## Uninstall target:
-#.PHONY: uninstall
-#uninstall:
-#	@echo "Uninstall target isn't implemented."
+# Cleaning target:
+.PHONY: clean
+clean:
+	@cd $(TARGET_OUTPUT_PATH) && $(RM) * | true
+	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * | true
 
 
 # End of makefile.

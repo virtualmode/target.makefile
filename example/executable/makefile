@@ -1,10 +1,10 @@
-# Project makefile.
+# Executable example makefile.
 
 # Prepare some macroses before include:
 TARGET_PATHS := Shell/
-TARGET_INTERMEDIATE_PATH := obj/
-TARGET_OUTPUT_PATH := bin/
-TARGET_INCLUDE_PATHS := ../static/
+TARGET_INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
+TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
+#TARGET_INCLUDE_PATHS := ../static/
 #TARGET_LIB_PATHS := $(TARGET_INTERMEDIATE_PATH)
 #TARGET_LIB_NAMES := example1 example2 example3
 
@@ -61,19 +61,11 @@ all:
 #	@rm -f $(SRC_BIN_TARGET) || true
 #	@rm -f $(addsuffix *,$(addprefix $(BUILD_INTERMEDIATE_PATH),$(SRC_PATHS))) 2> /dev/null || true
 
-## Rebuild target (build dependencies):
-#.PHONY: rebuild
-#rebuild: all
-
-## Installation target:
-#.PHONY: install
-#install:
-#	@echo "Installation target isn't implemented."
-
-## Uninstall target:
-#.PHONY: uninstall
-#uninstall:
-#	@echo "Uninstall target isn't implemented."
+# Cleaning target:
+.PHONY: clean
+clean:
+	@cd $(TARGET_OUTPUT_PATH) && $(RM) * | true
+	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * | true
 
 
 # End of makefile.

@@ -73,6 +73,7 @@
 #		link - Microsoft linker.
 #	LDFLAGS - linker flags.
 #	RM - command to remove a file (default: rm -f).
+#	CP - file copy command (default: cp -f).
 
 # This is obsolete instruction because target makefile can be included multiple times now. Default target:
 #.DEFAULT_GOAL = all
@@ -194,6 +195,10 @@ PARSE_MAJOR_VERSION := sed -ne 's/^[^0-9]*\([0-9]\+\)\..*/\1/g; s/\b[0-9]\b/00&/
 # @param $1 Множество с названием переменной утилиты, названием переменной флагов и значением по умолчанию.
 SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(call SET_TOOLS,$(wordlist 4,$(words $1),$1)),)
 
+# Default operating system utils.
+# To remove folder content use universal silent solution: @cd folder && $(RM) *
+RM := rm -rf
+CP := cp -f
 
 # Определение текущей операционной системы и архитектуры:
 ifeq ($(OS),Windows_NT)
@@ -205,8 +210,11 @@ ifeq ($(OS),Windows_NT)
 	else ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 		HOST_PLATFORM := x86
 	endif
-	# Native Windows command to remove files: $(RM) "folder/*"
-	RM := del /f /s /q
+	# Определение встроенных команд Windows:
+	ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+		RM := del /f /s /q
+		CP := copy /y
+	endif
 
 # Операционная система POSIX:
 else
@@ -222,8 +230,6 @@ else
 	else ifneq ($(filter arm%,$(UNAME_P)),)
 		HOST_PLATFORM := arm
 	endif
-	# To remove folder content use: $(RM) "folder/*"
-	RM := rm -rf
 endif
 
 # Setup default parameters:
