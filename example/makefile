@@ -1,12 +1,5 @@
 # Example of solution makefile.
 # Пример файла сборки всего решения.
-# Можно не использовать этот проект в Visual Studio, а
-# написать отдельные сборочные файлы для каждого из проектов.
-
-# Check required parameters:
-ifndef CONFIGURATION
-$(error Set CONFIGURATION parameter before start make)
-endif
 
 # Include target.makefile to use $(RM) macros:
 include ../target.makefile
@@ -21,8 +14,7 @@ usage:
 	@echo "	make rebuild   # Rebuilds all targets." >&2
 	@echo "	make clean     # Removes all output and intermediate results." >&2
 	@echo "	make install   # Installation target stub." >&2
-	@echo "	make uninstall # Uninstall stub." >&2
-	@echo " " >&2
+	@echo "	make uninstall # Uninstallation stub." >&2
 	@echo " " >&2
 
 .PHONY: binary
@@ -48,11 +40,12 @@ all: binary executable static
 .PHONY: rebuild
 rebuild: all
 
-# Change directory -C and run clean for each target (like cd ./target && $(MAKE) $@):
-# NOTE: Additional "2> /dev/null | true" redirection and true flag can be used for hiding and ignoring return errors.
+# Change directory -C and run clean for each target (like cd ./target && $(MAKE) $@).
+# Additional "2> /dev/null || true" redirection and true flag can be used for hiding and ignoring return errors.
+# But "| true" pipe will return result if the first command success.
 .PHONY: clean
 clean:
-	@cd bin/$(CONFIGURATION) && $(RM) * | true
+	@cd bin/$(CONFIGURATION) && $(RM) * || true
 	$(MAKE) $(MAKECMDGOALS) -C binary
 	$(MAKE) $(MAKECMDGOALS) -C executable
 	$(MAKE) $(MAKECMDGOALS) -C static

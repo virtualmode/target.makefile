@@ -1,7 +1,9 @@
+# Tiny build makefile.
 # Файл сборки исходного кода в исполняемый машинный код.
 
 # Задача данного файла выполнять кросс-компиляцию и компоновку с минимальным количеством зависимостей от внешних инструментов.
 # Для использования на некоторых платформах появится необходимость реализовать используемый здесь функционал.
+
 
 # Сборка происходит путём выполнения цепочек правил, состоящих из рецепта, файлов пререквизитов и цели. Если с момента выполнения
 # предыдущей сборки хотя бы один из пререквизитов был изменён, или целевой файл не создан, выполняется рецепт для обновления цели.
@@ -26,33 +28,36 @@
 #		windows - known operating system.
 #		posix - POSIX-compatible operating system.
 
-#	TARGET_PATHS - additional paths that contains sources for assembling. Used to get target within this make instance.
-#	TARGET_INTERMEDIATE_PATH - target path with intermediate build data.
-#	TARGET_OUTPUT_PATH - output path with target and its resources.
-
-#	TARGET_INCLUDE_PATHS - paths with additional headers.
+#	TARGET_ENTRY - optional variable with entry point name for executable binaries (optional and empty by default).
 #	TARGET_LIB_PATHS - paths with static libraries. You can include intermediate path also.
-#	TARGET_LIB_NAMES - static library names used in build.
-
+#	TARGET_LIB_NAMES - static library names used in build (optional and empty by default). Adjust to specific compiler.
+#	TARGET_INCLUDE_PATHS - paths with additional headers.
 #	TARGET_PCH_C_HEADER - C header relative path for PCH.
 #	TARGET_PCH_C_SOURCE - relative path of the C source file to compile as PCH.
 #	TARGET_PCH_CPP_HEADER - CPP header relative path for PCH.
 #	TARGET_PCH_CPP_SOURCE - relative path of the CPP source file to compile as PCH.
 
-#	TARGET_ENTRY - optional variable with entry point name for executable binaries.
+
+# You can define this macroses at any time:
+#	TARGET_PATHS - additional paths with explicit ./ current directory that contains sources for assembling.
+#	TARGET_INTERMEDIATE_PATH - target path with intermediate build data.
+#	TARGET_OUTPUT_PATH - output path with target and its resources.
 
 
 # Automatically initialized macroses that can be used:
-#	EXE - executable file extension.
-#	OBJ - object file extension.
-#	DLL - dynamic link library extension.
-#	LIB - static library extension.
-#	PCH - precompiled header file extension.
 #	ASM - assembler listing file extension.
 #	BIN - unknown binary file extension.
+#	COM - simple executable file extension.
+#	DEP - dependency file extension.
+#	DLL - dynamic link library extension.
+#	EXE - executable file extension.
+#	LIB - static library extension.
+#	OBJ - object file extension.
+#	PCH - precompiled header file extension.
+#	SYS - system file extension.
 
-#	HOST_PLATFORM - current platform.
-#	HOST_SYSTEM - current operating system.
+#	HOST_PLATFORM - current platform (see $(PLATFORM)).
+#	HOST_SYSTEM - current operating system (see $(SYSTEM)).
 
 #	AR - archive-maintaining program.
 #		ar - Unix archiver.
@@ -72,7 +77,7 @@
 #		gcc - GNU Compiler Collection.
 #		link - Microsoft linker.
 #	LDFLAGS - linker flags.
-#	RM - command to remove a file (default: rm -f).
+#	RM - command to remove a file (default: rm -rf).
 #	CP - file copy command (default: cp -f).
 
 # This is obsolete instruction because target makefile can be included multiple times now. Default target:
@@ -100,6 +105,7 @@ LINK_VERSION = $(shell $(LD) /HELP 2>&1 | $(PARSE_MAJOR_VERSION))
 LINK_VERSIONS = 001 010
 
 # Общие флаги пакета компиляторов MSVC:
+# TODO: NOT MACROS. CHECK ORDER!
 MSVC_INCLUDE_FLAGS := $(addsuffix ",$(addprefix /I",$(TARGET_INCLUDE_PATHS)))
 MSVC_LIB_PATHS_FLAGS := $(addsuffix ",$(addprefix /LIBPATH:",$(TARGET_LIB_PATHS)))
 MSVC_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
@@ -195,8 +201,17 @@ PARSE_MAJOR_VERSION := sed -ne 's/^[^0-9]*\([0-9]\+\)\..*/\1/g; s/\b[0-9]\b/00&/
 # @param $1 Множество с названием переменной утилиты, названием переменной флагов и значением по умолчанию.
 SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(call SET_TOOLS,$(wordlist 4,$(words $1),$1)),)
 
-# Default operating system utils.
-# To remove folder content use universal silent solution: @cd folder && $(RM) *
+# Рекурсивное получение списка каталогов проекта без временного и рабочего:
+# @param $1 Корневой каталог для чтения.
+GET_PATHS = $1 $(foreach d,$(filter-out %$(TARGET_INTERMEDIATE_PATH) %$(TARGET_OUTPUT_PATH),$(filter %/,$(wildcard $1*/))),$(call GET_PATHS,$d))
+
+# Make использует свой $(SHELL) во время работы. Не важно, из какой оболочки при этом он был запущен.
+# Т.к. команды на удаление и копирование могут отличаться, то лучше использовать универсальную запись:
+# @cd folder && $(RM) * || true
+# В данном случае отключается вывод в консоль, происходит переход в каталог для очистки, выполняется команда,
+# актуальная и для POSIX-систем, и для Windows, и всегда возвращается положительный результат (при этом вариант с
+# одиночным | каналом не будет выполнен, если первая команда завершится неудачно),
+# что предотвращает завершение сборки из-за возможных ошибок.
 RM := rm -rf
 CP := cp -f
 
@@ -236,7 +251,6 @@ endif
 ifeq ($(CONFIGURATION),)
 	CONFIGURATION := release
 endif
-
 ifeq ($(SYSTEM),)
 	SYSTEM := $(HOST_SYSTEM)
 endif
@@ -244,42 +258,37 @@ ifeq ($(PLATFORM),)
 	PLATFORM := $(HOST_PLATFORM)
 endif
 
-# TODO: Добавление текущего каталога в списки может оказаться необязательным.
-#ifdef TARGET_PATHS
-#	TARGET_PATHS := ./ $(TARGET_PATHS)
-#else
-#	TARGET_PATHS := ./
-#endif
-#ifdef TARGET_INCLUDE_PATHS
-#	TARGET_INCLUDE_PATHS := ./ $(TARGET_INCLUDE_PATHS)
-#else
-#	TARGET_INCLUDE_PATHS := ./
-#endif
-#ifdef TARGET_LIB_PATHS
-#	TARGET_LIB_PATHS := ./ $(TARGET_LIB_PATHS)
-#else
-#	TARGET_LIB_PATHS := ./
-#endif
+# Setup building paths by default:
+# Определение каталогов сборки по умолчанию:
+ifndef TARGET_INTERMEDIATE_PATH
+	TARGET_INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
+endif
+ifndef TARGET_OUTPUT_PATH
+	TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
+endif
+ifndef TARGET_PATHS
+	TARGET_PATHS := $(call GET_PATHS,./)
+endif
+ifndef TARGET_INCLUDE_PATHS
+	TARGET_INCLUDE_PATHS := ./
+endif
+ifndef TARGET_LIB_PATHS
+	TARGET_LIB_PATHS := ./
+endif
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
 BIN := .bin
 COM := .com
-DEP := .d
+DEP := .depend
 SYS := .sys
-# Установка расширений по умолчанию для поддерживаемых типов файлов:
-ASM :=
-DLL :=
-EXE :=
-LIB :=
-OBJ :=
-PCH :=
 
 # Настройка сборки под выбранную платформу:
 ifeq ($(SYSTEM),none)
 	# Расширения абстрактной операционной системы:
 	ASM := .a
 	BIN := .b
+	DEP := .d
 	DLL := .s
 	LIB := .l
 	OBJ := .o
@@ -321,6 +330,107 @@ endif
 $(eval $(call SET_TOOLS,$(DEFAULT_TOOLS)))
 
 
+# Prepare C precompiled header variables:
+ifneq ($(TARGET_PCH_C_SOURCE),)
+TARGET_PCH_C_OBJ := $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(OBJ)
+TARGET_PCH_C_PREREQUISITE = $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(PCH)
+#TARGET_PCH_C_USE_MACROS := $(SRC_PCH_C_USE_FLAGS)
+endif
+
+# Prepare CPP precompiled header variables:
+ifneq ($(TARGET_PCH_CPP_SOURCE),)
+TARGET_PCH_CPP_OBJ := $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(OBJ)
+TARGET_PCH_CPP_PREREQUISITE = $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(PCH)
+#TARGET_PCH_CPP_USE_MACROS := $(SRC_PCH_CPP_USE_FLAGS)
+endif
+
+# Determine all source files in project directories:
+TARGET_C_FILES = $(subst ./,,$(wildcard $(addsuffix *.c, $(TARGET_PATHS))))
+TARGET_CPP_FILES = $(subst ./,,$(wildcard $(addsuffix *.cpp, $(TARGET_PATHS))))
+TARGET_ASM_FILES = $(subst ./,,$(wildcard $(addsuffix *$(ASM), $(TARGET_PATHS))))
+
+# Binary objects pattern target with prefix relative path (%.obj file in intermediate directory):
+TARGET_OBJS = $(TARGET_INTERMEDIATE_PATH)%$(OBJ)
+TARGET_OBJS_FILES := $(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES))
+TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TARGET_OBJS_FILES))
+
+# Special dependency target to rebuild sources when headers changes (%.depend file in intermediate directory):
+TARGET_DEPENDENCY = $(BUILD_INTERMEDIATE_PATH)%$(DEP)
+TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
+
+
+# Prevent automatical removing some files by make:
+.SECONDARY:
+
+# Generate dependencies of source files on header files:
+ifneq ($(MAKECMDGOALS),clean)
+-include $(TARGET_DEPENDENCY_FILES)
+endif
+
+# Don't build dependencies in usual builds:
+# Use automatic variables without := operator!
+TARGET_DEPENDENCY_ECHO =
+ifneq ($(MAKECMDGOALS),rebuild)
+TARGET_DEPENDENCY_RECIPE = touch -a $@
+else
+TARGET_DEPENDENCY_ECHO = (echo "Updating $< dependencies...");
+endif
+
+# Targets to generate dependencies:
+$(TARGET_DEPENDENCY): %.c
+	@$(TARGET_DEPENDENCY_ECHO)($(TARGET_DEPENDENCY_RECIPE))
+
+$(TARGET_DEPENDENCY): %.cpp
+	@$(TARGET_DEPENDENCY_ECHO)($(TARGET_DEPENDENCY_RECIPE))
+
+# Rule for C precompiled header:
+ifneq ($(TARGET_PCH_C_SOURCE),)
+$(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
+	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_MACROS)
+	@echo Precompiled C header was created.
+
+$(SRC_PCH_C_OBJ): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_PREREQUISITE)
+	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
+	@$(SRC_CC_C_ASM_MACROS)
+	@echo Precompiled C object was created.
+endif
+
+# Rule for CPP precompiled header:
+ifneq ($(TARGET_PCH_CPP_SOURCE),)
+$(TARGET_PCH_CPP_PREREQUISITE): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER)
+	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_MACROS)
+	@echo Precompiled CPP header was created.
+
+$(SRC_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_PREREQUISITE)
+	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
+	@$(SRC_CC_CPP_ASM_MACROS)
+	@echo Precompiled CPP object was created.
+endif
+
+# Regular source rules (dependencies are used by rebuild target to rebuild sources after usual build):
+$(SRC_OBJS_TARGET): %.c $(SRC_DEPENDENCIES_TARGET) $(SRC_PCH_C_OBJ)
+	@$(CC) $(CFLAGS) $(SRC_CC_C_MACROS)
+	@$(SRC_CC_C_ASM_MACROS)
+
+$(SRC_OBJS_TARGET): %.cpp $(SRC_DEPENDENCIES_TARGET) $(SRC_PCH_CPP_OBJ)
+	@$(CC) $(CPPFLAGS) $(SRC_CC_CPP_MACROS)
+	@$(SRC_CC_CPP_ASM_MACROS)
+
+# Static library rule:
+$(SRC_OUTPUT_TARGET_PREFIX)$(SRC_LIB_EXT): $(SRC_OBJS) $(SRC_PCH_C_OBJ) $(SRC_PCH_CPP_OBJ)
+	@$(AR) $(addprefix ",$(addsuffix ",$^)) $(ARFLAGS)
+
+# Generic linker rules:
+SRC_LD_EXTS := $(SRC_EXE_EXT) $(SRC_DLL_EXT)
+$(addprefix $(SRC_OUTPUT_TARGET_PREFIX),$(SRC_LD_EXTS)): $(SRC_OBJS) $(SRC_PCH_C_OBJ) $(SRC_PCH_CPP_OBJ)
+	@$(LD) $(LFLAGS) $(addprefix ",$(addsuffix ",$^))
+
+# Default rule for unknown binary target type. To extend rule and allow binary extension usage,
+# add rule with same target and additional prerequisites:
+$(SRC_OUTPUT_TARGET_PREFIX)$(SRC_BIN_EXT):
+	$(error Can't assembly binary file of unknown type)
+
+
 # Подготовка сборки произведена. Вывод отладочной информации.
 # Целевая конфигурация:
 ifdef DEBUG
@@ -328,7 +438,7 @@ $(info )
 $(info $(SPACE)                   CONFIGURATION = $(CONFIGURATION))
 $(info $(SPACE)           PLATFORM ARCHITECTURE = $(PLATFORM) $(ARCHITECTURE))
 $(info $(SPACE)                          SYSTEM = $(SYSTEM))
-$(info $(SPACE)                      EXTENSIONS = $(BIN) $(COM) $(DEP) $(SYS) $(ASM) $(DLL) $(EXE) $(LIB) $(OBJ) $(PCH))
+$(info $(SPACE)                      EXTENSIONS = $(ASM) $(BIN) $(COM) $(DEP) $(DLL) $(EXE) $(LIB) $(OBJ) $(PCH) $(SYS))
 
 # Текущая конфигурация:
 $(info )
@@ -338,15 +448,18 @@ $(info $(SPACE)                     HOST_SYSTEM = $(HOST_SYSTEM))
 # Параметры сборки:
 $(info )
 $(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
+$(info $(SPACE)                  TARGET_C_FILES = $(TARGET_C_FILES))
+$(info $(SPACE)                TARGET_CPP_FILES = $(TARGET_CPP_FILES))
+$(info $(SPACE)                TARGET_ASM_FILES = $(TARGET_ASM_FILES))
+$(info $(SPACE)               TARGET_OBJS_FILES = $(TARGET_OBJS_FILES))
+$(info $(SPACE)         TARGET_DEPENDENCY_FILES = $(TARGET_DEPENDENCY_FILES))
 $(info $(SPACE)        TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
 $(info $(SPACE)              TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
 $(info $(SPACE)            TARGET_INCLUDE_PATHS = $(TARGET_INCLUDE_PATHS))
 $(info $(SPACE)                TARGET_LIB_PATHS = $(TARGET_LIB_PATHS))
 $(info $(SPACE)                TARGET_LIB_NAMES = $(TARGET_LIB_NAMES))
-$(info $(SPACE)             TARGET_PCH_C_HEADER = $(TARGET_PCH_C_HEADER))
-$(info $(SPACE)             TARGET_PCH_C_SOURCE = $(TARGET_PCH_C_SOURCE))
-$(info $(SPACE)           TARGET_PCH_CPP_HEADER = $(TARGET_PCH_CPP_HEADER))
-$(info $(SPACE)           TARGET_PCH_CPP_SOURCE = $(TARGET_PCH_CPP_SOURCE))
+$(info $(SPACE)                  TARGET_PCH_C_* = $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_C_PREREQUISITE))
+$(info $(SPACE)                TARGET_PCH_CPP_* = $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_OBJ) $(TARGET_PCH_CPP_PREREQUISITE))
 $(info $(SPACE)                    TARGET_ENTRY = $(TARGET_ENTRY))
 
 # Вычисленные параметры:
@@ -361,8 +474,6 @@ $(info $(SPACE)                              RM = $(RM))
 $(info )
 endif
 
-
-# A phony target is one that is not really the name of a file.
 
 # Disable implicit rules to speed-up build:
 .SUFFIXES:
@@ -518,7 +629,6 @@ SUFFIXES :=
 .sym:
 .f:
 .f.o:
-
 
 # End of makefile.
 # Конец файла сборки.

@@ -1,7 +1,10 @@
 # Binary example makefile.
 
-TARGET_INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
-TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
+DEBUG := 1
+
+# Prepare some macroses before include.
+# Optionally set the paths for Viual Studio IntelliSense.
+TARGET_ENTRY := main
 
 include ../../target.makefile
 
@@ -12,8 +15,8 @@ all:
 # Cleaning target:
 .PHONY: clean
 clean:
-	@cd $(TARGET_OUTPUT_PATH) && $(RM) * | true
-	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * | true
+	@cd $(TARGET_OUTPUT_PATH) && $(RM) * || true
+	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * || true
 
 
 # End of makefile.
