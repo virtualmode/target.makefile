@@ -94,7 +94,9 @@ LIB_VERSION = $(shell $(AR) 2>&1 | $(PARSE_MAJOR_VERSION))
 LIB_VERSIONS = 001
 # AS ассемблеры:
 ML_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
-ML_VERSIONS = 001 008
+ML_VERSIONS = 001 007
+ML64_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
+ML64_VERSIONS = 001 007
 # CC/CXX компиляторы C/C++:
 CL_VERSION = $(shell $(CC) 2>&1 | $(PARSE_MAJOR_VERSION))
 CL_VERSIONS = 001 010
@@ -112,21 +114,30 @@ MSVC_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
 # Данные программы проверены, предсказуемы и наиболее оптимизированы в отличие от современных наборов.
-LIB001_DEBUG := /VERBOSE
-LIB001_RELEASE := /VERBOSE
+ML001_DEBUG := /AT /c
+ML001_RELEASE := /AT /c
+
+ML64001_DEBUG := /AT /c
+ML64001_RELEASE := /AT /c
 
 CL001_DEBUG := /AT /G2 /Gs /Gx /c /Zl
 CL001_RELEASE := /AT /G2 /Gs /Gx /c /Zl
 
+LIB001_DEBUG := /VERBOSE
+LIB001_RELEASE := /VERBOSE
+
 LINK001_DEBUG := /T /NOD
 LINK001_RELEASE := /T /NOD
-
-ML001_DEBUG := /AT /c
-ML001_RELEASE := /AT /c
 
 # Флаги актуальной версии MSVC для сборки цели.
 # Компиляторы Microsoft не поддерживают флаги для компиляции под определённую архитектуру процессора.
 # Для сборки необходимо запустить определённый экземпляр компилятора, установив переменную окружения.
+ML007_DEBUG := /AT /c
+ML007_RELEASE := /AT /c
+
+ML64007_DEBUG := /AT /c
+ML64007_RELEASE := /AT /c
+
 CL010_DEBUG := /c $(MSVC_INCLUDE_FLAGS) /GS /W3 /Zc:wchar_t /ZI /Gm /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /RTC1 /Gd /Oy- /MDd /EHsc /nologo /diagnostics:classic
 CL010_RELEASE := /c $(MSVC_INCLUDE_FLAGS) /GS- /GL /W3 /Gy /Zc:wchar_t /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "NDEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /Oi /MD /EHsc /nologo /diagnostics:classic
 
@@ -140,7 +151,7 @@ LINK010_X86 := /MACHINE:X86
 LINK010_AMD64 := /MACHINE:X64
 
 LINK010_AMD64_EXE := /ALIGN:16 /DRIVER
-LINK010_EXE := /MANIFEST:NO /NXCOMPAT /PDB:"$(BUILD_INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(SRC_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
+LINK010_EXE := /MANIFEST:NO /NXCOMPAT /PDB:"$(TARGET_INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
 
 # GCC:
 
@@ -349,13 +360,12 @@ TARGET_C_FILES = $(subst ./,,$(wildcard $(addsuffix *.c, $(TARGET_PATHS))))
 TARGET_CPP_FILES = $(subst ./,,$(wildcard $(addsuffix *.cpp, $(TARGET_PATHS))))
 TARGET_ASM_FILES = $(subst ./,,$(wildcard $(addsuffix *$(ASM), $(TARGET_PATHS))))
 
-# Binary objects pattern target with prefix relative path (%.obj file in intermediate directory):
-TARGET_OBJS = $(TARGET_INTERMEDIATE_PATH)%$(OBJ)
-TARGET_OBJS_FILES := $(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES))
+# Object files without PCH. Specially without % pattern to free target from object paths dependency:
+TARGET_OBJS_FILES := $(addprefix $(TARGET_INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
 TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TARGET_OBJS_FILES))
 
 # Special dependency target to rebuild sources when headers changes (%.depend file in intermediate directory):
-TARGET_DEPENDENCY = $(BUILD_INTERMEDIATE_PATH)%$(DEP)
+TARGET_DEPENDENCY = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
 TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 
 
@@ -386,54 +396,92 @@ $(TARGET_DEPENDENCY): %.cpp
 # Rule for C precompiled header:
 ifneq ($(TARGET_PCH_C_SOURCE),)
 $(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
-	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_MACROS)
+#	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_MACROS)
 	@echo Precompiled C header was created.
 
-$(SRC_PCH_C_OBJ): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_PREREQUISITE)
-	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
-	@$(SRC_CC_C_ASM_MACROS)
+$(TARGET_PCH_C_OBJ): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_PREREQUISITE)
+#	@$(CC) $(CFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
+#	@$(SRC_CC_C_ASM_MACROS)
 	@echo Precompiled C object was created.
 endif
 
 # Rule for CPP precompiled header:
 ifneq ($(TARGET_PCH_CPP_SOURCE),)
 $(TARGET_PCH_CPP_PREREQUISITE): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER)
-	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_MACROS)
+#	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_MACROS)
 	@echo Precompiled CPP header was created.
 
-$(SRC_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_PREREQUISITE)
-	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
-	@$(SRC_CC_CPP_ASM_MACROS)
+$(TARGET_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_PREREQUISITE)
+#	@$(CC) $(CPPFLAGS) $(SRC_PCH_CXX_OBJ_MACROS)
+#	@$(SRC_CC_CPP_ASM_MACROS)
 	@echo Precompiled CPP object was created.
 endif
 
-# Regular source rules (dependencies are used by rebuild target to rebuild sources after usual build):
-$(SRC_OBJS_TARGET): %.c $(SRC_DEPENDENCIES_TARGET) $(SRC_PCH_C_OBJ)
-	@$(CC) $(CFLAGS) $(SRC_CC_C_MACROS)
-	@$(SRC_CC_C_ASM_MACROS)
+# C rule (dependencies are used by rebuild target to rebuild sources after usual build):
+TARGET_C := $(TARGET_INTERMEDIATE_PATH)%.c$(OBJ)
+TARGET_C_PREREQUISITES := %.c $(TARGET_DEPENDENCY) $(TARGET_PCH_C_OBJ)
+TARGET_C_RECIPE := $(CC) $(CFLAGS) $(SRC_CC_C_MACROS)
+#TARGET_C_ASM_RECIPE := $(SRC_CC_C_ASM_MACROS)
 
-$(SRC_OBJS_TARGET): %.cpp $(SRC_DEPENDENCIES_TARGET) $(SRC_PCH_CPP_OBJ)
-	@$(CC) $(CPPFLAGS) $(SRC_CC_CPP_MACROS)
-	@$(SRC_CC_CPP_ASM_MACROS)
+$(TARGET_C): $(TARGET_C_PREREQUISITES)
+	@echo "*** TARGET C *** $@: $^"
+#	@$(TARGET_C_RECIPE)
+#	@$(TARGET_C_ASM_RECIPE)
+
+# C++ rule:
+TARGET_CPP := $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ)
+TARGET_CPP_PREREQUISITES := %.cpp $(TARGET_DEPENDENCY) $(TARGET_PCH_CPP_OBJ)
+TARGET_CPP_RECIPE := $(CXX) $(CXXFLAGS) $(SRC_CC_CPP_MACROS)
+#TARGET_CPP_ASM_RECIPE := $(SRC_CC_CPP_ASM_MACROS)
+
+$(TARGET_CPP): $(TARGET_CPP_PREREQUISITES)
+	@echo "*** TARGET CPP *** $@: $^"
+#	@$(TARGET_CPP_RECIPE)
+#	@$(TARGET_CPP_ASM_RECIPE)
+
+# Native Assembler compilation:
+TARGET_ASM := $(TARGET_INTERMEDIATE_PATH)%$(ASM)$(OBJ)
+TARGET_ASM_PREREQUISITES := %$(ASM)
+TARGET_ASM_RECIPE := $(AS) $(ASFLAGS)
+
+$(TARGET_ASM): $(TARGET_ASM_PREREQUISITES)
+	@echo "*** TARGET ASM *** $@: $^"
+#	@$(TARGET_ASM_RECIPE)
+
+
+# Т.к. некоторые исполняемые файлы могут быть без расширения, цели на их создание могут совпасть с .PHONY целями, что
+# приведёт к ошибке сборки. Поэтому сборка доступна только в выходном каталоге. Выражение % заменяется последовательностью
+# любых символов так, чтобы совпало со всей целью. Полученное значение далее подставляется в пререквизиты, которые
+# в свою очередь должны совпасть с реальными файлами с путями или другими промежуточными целями.
 
 # Static library rule:
-$(SRC_OUTPUT_TARGET_PREFIX)$(SRC_LIB_EXT): $(SRC_OBJS) $(SRC_PCH_C_OBJ) $(SRC_PCH_CPP_OBJ)
-	@$(AR) $(addprefix ",$(addsuffix ",$^)) $(ARFLAGS)
+TARGET_STATIC := $(TARGET_OUTPUT_PATH)%$(LIB)
+TARGET_STATIC_PREREQUISITES := $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+TARGET_STATIC_RECIPE := $(AR) $(addprefix ",$(addsuffix ",$^)) $(ARFLAGS)
 
-# Generic linker rules:
-SRC_LD_EXTS := $(SRC_EXE_EXT) $(SRC_DLL_EXT)
-$(addprefix $(SRC_OUTPUT_TARGET_PREFIX),$(SRC_LD_EXTS)): $(SRC_OBJS) $(SRC_PCH_C_OBJ) $(SRC_PCH_CPP_OBJ)
-	@$(LD) $(LFLAGS) $(addprefix ",$(addsuffix ",$^))
+$(TARGET_STATIC): $(TARGET_STATIC_PREREQUISITES)
+	@echo "*** TARGET LIB *** $@: $^"
+#	@$(TARGET_STATIC_RECIPE)
 
-# Default rule for unknown binary target type. To extend rule and allow binary extension usage,
+# Generic linker rules for executables and dynamic link libraries:
+TARGET_EXECUTABLE := $(addprefix $(TARGET_OUTPUT_PATH)%,$(EXE) $(DLL)) $(TARGET_OUTPUT_PATH)%
+TARGET_EXECUTABLE_PREREQUISITES := $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+TARGET_EXECUTABLE_RECIPE := $(LD) $(LFLAGS) $(addprefix ",$(addsuffix ",$^))
+
+$(TARGET_EXECUTABLE): $(TARGET_OBJS_FILES)
+	@echo "*** TARGET EXE DLL *** $@: $^"
+#	@$(TARGET_EXECUTABLE_RECIPE)
+
+# Default rule for unsupported types. To extend rule and allow binary extension usage,
 # add rule with same target and additional prerequisites:
-$(SRC_OUTPUT_TARGET_PREFIX)$(SRC_BIN_EXT):
-	$(error Can't assembly binary file of unknown type)
+TARGET_BINARY := $(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS))
+$(TARGET_BINARY):
+	$(error Can't assembly binary file of $(suffix $@) type)
 
 
 # Подготовка сборки произведена. Вывод отладочной информации.
-# Целевая конфигурация:
 ifdef DEBUG
+# Целевая конфигурация:
 $(info )
 $(info $(SPACE)                   CONFIGURATION = $(CONFIGURATION))
 $(info $(SPACE)           PLATFORM ARCHITECTURE = $(PLATFORM) $(ARCHITECTURE))
@@ -447,14 +495,9 @@ $(info $(SPACE)                     HOST_SYSTEM = $(HOST_SYSTEM))
 
 # Параметры сборки:
 $(info )
-$(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
-$(info $(SPACE)                  TARGET_C_FILES = $(TARGET_C_FILES))
-$(info $(SPACE)                TARGET_CPP_FILES = $(TARGET_CPP_FILES))
-$(info $(SPACE)                TARGET_ASM_FILES = $(TARGET_ASM_FILES))
-$(info $(SPACE)               TARGET_OBJS_FILES = $(TARGET_OBJS_FILES))
-$(info $(SPACE)         TARGET_DEPENDENCY_FILES = $(TARGET_DEPENDENCY_FILES))
 $(info $(SPACE)        TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
 $(info $(SPACE)              TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
+$(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
 $(info $(SPACE)            TARGET_INCLUDE_PATHS = $(TARGET_INCLUDE_PATHS))
 $(info $(SPACE)                TARGET_LIB_PATHS = $(TARGET_LIB_PATHS))
 $(info $(SPACE)                TARGET_LIB_NAMES = $(TARGET_LIB_NAMES))
@@ -464,13 +507,40 @@ $(info $(SPACE)                    TARGET_ENTRY = $(TARGET_ENTRY))
 
 # Вычисленные параметры:
 $(info )
+$(info $(SPACE)                  TARGET_C_FILES = $(TARGET_C_FILES))
+$(info $(SPACE)                TARGET_CPP_FILES = $(TARGET_CPP_FILES))
+$(info $(SPACE)                TARGET_ASM_FILES = $(TARGET_ASM_FILES))
+$(info $(SPACE)               TARGET_OBJS_FILES = $(TARGET_OBJS_FILES))
+$(info $(SPACE)         TARGET_DEPENDENCY_FILES = $(TARGET_DEPENDENCY_FILES))
 
+$(info )
 $(info $(SPACE)            AR_PREFIX AR ARFLAGS = $(AR_PREFIX) $(AR) $(ARFLAGS))
 $(info $(SPACE)            AS_PREFIX AS ASFLAGS = $(AS_PREFIX) $(AS) $(ASFLAGS))
 $(info $(SPACE)             CC_PREFIX CC CFLAGS = $(CC_PREFIX) $(CC) $(CFLAGS))
 $(info $(SPACE)         CXX_PREFIX CXX CXXFLAGS = $(CXX_PREFIX) $(CXX) $(CXXFLAGS))
 $(info $(SPACE)            LD_PREFIX LD LDFLAGS = $(LD_PREFIX) $(LD) $(LDFLAGS))
 $(info $(SPACE)                              RM = $(RM))
+
+# Вычисленные цели, пререквизиты и рецепты:
+$(info )
+$(info $(SPACE)                      TARGET_C_* = $(TARGET_C): $(TARGET_C_PREREQUISITES))
+$(info $(SPACE)                                   	$(TARGET_C_RECIPE))
+$(info $(SPACE)                                   	$(TARGET_C_ASM_RECIPE))
+
+$(info $(SPACE)                    TARGET_CPP_* = $(TARGET_CPP): $(TARGET_CPP_PREREQUISITES))
+$(info $(SPACE)                                   	$(TARGET_CPP_RECIPE))
+$(info $(SPACE)                                   	$(TARGET_CPP_ASM_RECIPE))
+
+$(info $(SPACE)                    TARGET_ASM_* = $(TARGET_ASM): $(TARGET_ASM_PREREQUISITES))
+$(info $(SPACE)                                   	$(TARGET_ASM_RECIPE))
+
+$(info $(SPACE)                 TARGET_STATIC_* = $(TARGET_STATIC): $(TARGET_STATIC_PREREQUISITES))
+$(info $(SPACE)                                   	$(TARGET_STATIC_RECIPE))
+
+$(info $(SPACE)             TARGET_EXECUTABLE_* = $(TARGET_EXECUTABLE): $(TARGET_EXECUTABLE_PREREQUISITES))
+$(info $(SPACE)                                   	$(TARGET_EXECUTABLE_RECIPE))
+
+$(info $(SPACE)                 TARGET_BINARY_* = $(TARGET_BINARY):)
 $(info )
 endif
 

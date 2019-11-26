@@ -1,5 +1,7 @@
 # Executable example makefile.
 
+DEBUG := 1
+
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
 TARGET_INCLUDE_PATHS := ./ ../static/
@@ -15,8 +17,9 @@ include ../../target.makefile # Global makefile with common functional.
 
 # Default phony target of copying builded files to output directory:
 .PHONY: all
-all:
+all: $(TARGET_OUTPUT_PATH)executable
 	@echo "Executable done." >&2
+
 #	@cp "$?" "$(BUILD_OUTPUT_PATH)"
 
 # Cleaning target:

@@ -11,13 +11,11 @@ TARGET_PCH_CPP_SOURCE := Core/globalcpp.cpp
 
 include ../../target.makefile # Global makefile with common functional.
 
-# Optional and temporary. This must work out of box.
-static$(LIB):
-	@echo stub static > $(TARGET_INTERMEDIATE_PATH)static$(LIB)
+#$(info DEBUG = $(TARGET_INTERMEDIATE_PATH)static$(LIB))
 
 # Default phony target of copying builded files to output directory:
 .PHONY: all
-all: static$(LIB)
+all: $(TARGET_OUTPUT_PATH)static$(LIB)
 	@echo "Static library done." >&2
 
 # Rebuild target (build dependencies):
