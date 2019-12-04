@@ -4,38 +4,42 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "debug-x86",
+            "label": "Debug AMD64",
+            "type": "shell",
+            "command": "make all CONFIGURATION=debug PLATFORM=amd64 -C ${workspaceFolder} --no-print-directory",
+            "windows":{
+                // Example for Windows specific command:
+                //"command": "make all CONFIGURATION=debug PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C ${workspaceFolder} --no-print-directory"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Release AMD64",
+            "type": "shell",
+            "command": "make all CONFIGURATION=release PLATFORM=amd64 -C ${workspaceFolder} --no-print-directory",
+            "group": "build"
+        },
+        {
+            "label": "Debug x86",
             "type": "shell",
             "command": "make all CONFIGURATION=debug PLATFORM=x86 -C ${workspaceFolder} --no-print-directory",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
-            "label": "release-x86",
+            "label": "Release x86",
             "type": "shell",
             "command": "make all CONFIGURATION=release PLATFORM=x86 -C ${workspaceFolder} --no-print-directory",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
-            "label": "debug-x64",
+            "label": "Tests",
             "type": "shell",
-            "command": "make all CONFIGURATION=debug PLATFORM=x64 -C ${workspaceFolder} --no-print-directory",
+            "command": "echo 'Tests not implemented.'",
             "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "release-x64",
-            "type": "shell",
-            "command": "make all CONFIGURATION=release PLATFORM=x64 -C ${workspaceFolder} --no-print-directory",
-            "group": {
-                "kind": "build",
+                "kind": "test",
                 "isDefault": true
             }
         }

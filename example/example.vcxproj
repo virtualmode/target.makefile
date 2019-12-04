@@ -69,8 +69,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
     <OutDir>bin\debug\</OutDir>
     <IntDir>bin\debug\</IntDir>
@@ -78,8 +78,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
     <OutDir>bin\debug\</OutDir>
     <IntDir>bin\debug\</IntDir>
@@ -87,8 +87,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=x86 -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
     <OutDir>bin\release\</OutDir>
     <IntDir>bin\release\</IntDir>
@@ -96,8 +96,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>
     </NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C $(SolutionDir) --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=amd64 -C $(SolutionDir) --no-print-directory</NMakeCleanCommandLine>
     <OutDir>bin\release\</OutDir>
     <IntDir>bin\release\</IntDir>

@@ -5,16 +5,40 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Launch",
+            "name": "executable (cppvsdbg)",
             "type": "cppvsdbg",
             "request": "launch",
+            "preLaunchTask": "Debug AMD64",
             "program": "${workspaceFolder}/bin/executable.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
-            "preLaunchTask": "debug-x64"
+            "externalConsole": false
+        },
+        {
+            "name": "executable (gdb)",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Debug AMD64",
+            "program": "${workspaceFolder}/bin/executable",
+            "stopAtEntry": false,
+            "customLaunchSetupCommands": [
+                { "text": "target-run", "description": "run target", "ignoreFailures": false }
+            ],
+            "launchCompleteCommand": "exec-run",
+            "linux": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "/usr/bin/gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "windows": {
+                "program": "${workspaceFolder}/bin/executable.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
+            }
         }
     ]
 }
