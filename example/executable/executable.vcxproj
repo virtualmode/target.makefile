@@ -42,6 +42,7 @@
     <ProjectGuid>{7B5AAFB0-5E64-4270-A49A-3F135C1569E2}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
     <ProjectName>executable</ProjectName>
+	<WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

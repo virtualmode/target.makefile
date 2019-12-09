@@ -2,6 +2,9 @@
 
 DEBUG := 1
 
+# For example. If compiler not uses default include paths, you can manually set them:
+#TARGET_INCLUDE_PATHS := ./:C:\bin\vc152
+
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
 TARGET_PCH_C_HEADER := Core/globalc.h

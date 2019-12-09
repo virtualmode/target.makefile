@@ -91,12 +91,12 @@ DEFAULT_TOOLS_POSIX := AR ARFLAGS ar AS ASFLAGS ml CC CFLAGS gcc CXX CXXFLAGS gc
 # Макросы определения версий поддерживаемых утилит.
 # AR программы обслуживания (сопровождения) архивов:
 LIB_VERSION = $(shell $(AR) 2>&1 | $(PARSE_MAJOR_VERSION))
-LIB_VERSIONS = 001
+LIB_VERSIONS = 001 010
 # AS ассемблеры:
 ML_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
-ML_VERSIONS = 001 007
+ML_VERSIONS = 001 010
 ML64_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
-ML64_VERSIONS = 001 007
+ML64_VERSIONS = 001 010
 # CC/CXX компиляторы C/C++:
 CL_VERSION = $(shell $(CC) 2>&1 | $(PARSE_MAJOR_VERSION))
 CL_VERSIONS = 001 010
@@ -109,11 +109,14 @@ LINK_VERSIONS = 001 010
 
 # Общие флаги пакета компиляторов MSVC:
 CL_ASM_FLAGS = /Fa"$(basename $@)$(ASM)"
-CL_PCH_FLAGS = /Yc /Fp"$@" /Fo"$(basename $@)$(OBJ)" "$<"
+#CL_PCH_FLAGS = /Yc /Fp"$@" /Fo"$(basename $@)$(OBJ)" "$<" # /Fo и исходник и так в CFLAGS будут присутствовать.
+CL_PCH_FLAGS = /Yc /Fp"$@"
 CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)" /Fo"$@" $(CL_ASM_FLAG) "$<"
+#CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)" /Fo"$@" $(CL_ASM_FLAG)
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
-CL_INCLUDE_FLAGS = $(addsuffix ",$(addprefix /I",$(TARGET_INCLUDE_PATHS)))
+# TODO: Вычисление путей заголовочных файлов может быть оптимизировано, а не вычисляться каждый запуск компилятора.
+CL_INCLUDE_FLAGS = $(call GET_PATHS_FLAGS,$(TARGET_INCLUDE_PATHS),/I)
 LINK_LIB_PATHS_FLAGS = $(addsuffix ",$(addprefix /LIBPATH:",$(TARGET_LIB_PATHS)))
 LINK_LIB_NAMES_FLAGS = $(addsuffix $(LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
 # HACK: Triple slash is used instead of double, because shell escapes characters (in not Cygwin windows environment).
@@ -153,10 +156,12 @@ LINK001_LD_RELEASE = /T /NOD
 # Флаги актуальной версии MSVC для сборки цели.
 # Компиляторы Microsoft не поддерживают флаги для компиляции под определённую архитектуру процессора.
 # Для сборки необходимо запустить определённый экземпляр компилятора, установив переменную окружения.
-ML007_AS_DEBUG = /AT /c /Fo "$@" "$^"
-ML007_AS_RELEASE = /AT /c /Fo "$@" "$^"
-ML64007_AS_DEBUG = $(ML007_AS_DEBUG)
-ML64007_AS_RELEASE = $(ML007_AS_RELEASE)
+#ML010_AS_DEBUG = /AT /c /Fo "$@" "$^"
+#ML010_AS_RELEASE = /AT /c /Fo "$@" "$^"
+ML010_AS_DEBUG = /AT /c "$^"
+ML010_AS_RELEASE = /AT /c "$^"
+ML64010_AS_DEBUG = $(ML010_AS_DEBUG)
+ML64010_AS_RELEASE = $(ML010_AS_RELEASE)
 
 CL010_PCH = $(CL_PCH_FLAGS)
 CL010_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
@@ -164,7 +169,7 @@ CL010_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL010_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
 CL010_CC = /Fo"$@" $(CL_ASM_FLAGS) "$<"
 CL010_CXX = /Fo"$@" $(CL_ASM_FLAGS) "$<"
-CL010_CC_DEBUG = /c $(CL_INCLUDE_FLAGS) /GS /W3 /Zc:wchar_t /ZI /Gm /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /RTC1 /Gd /Oy- /MDd /EHsc /nologo /diagnostics:classic
+CL010_CC_DEBUG = /c $(CL_INCLUDE_FLAGS) /GS /W3 /Zc:wchar_t /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /RTC1 /Gd /Oy- /MDd /EHsc /nologo /diagnostics:classic
 CL010_CXX_DEBUG = $(CL010_CC_DEBUG)
 CL010_CC_RELEASE = /c $(CL_INCLUDE_FLAGS) /GS- /GL /W3 /Gy /Zc:wchar_t /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "NDEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /Oi /MD /EHsc /nologo /diagnostics:classic
 CL010_CXX_RELEASE = $(CL010_CC_RELEASE)
@@ -232,6 +237,7 @@ SPACE :=
 SPACE +=
 COMMA := ,
 COLON := :
+SMCLN := ;
 LPRNT := (
 RPRNT := )
 
@@ -284,6 +290,19 @@ SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(cal
 # Рекурсивное получение списка каталогов проекта без временного и рабочего:
 # @param $1 Корневой каталог для чтения.
 GET_PATHS = $1 $(foreach d,$(filter-out %$(TARGET_INTERMEDIATE_PATH) %$(TARGET_OUTPUT_PATH),$(filter %/,$(wildcard $1*/))),$(call GET_PATHS,$d))
+
+# Макрос получения флагов списка путей.
+# @param $1 Множество нормализованных путей, разделённые точкой с запятой и пробелом.
+# @param $2 Префикс флага пути.
+# @param $3 Текущий результат, который будет возвращён после выполнения.
+# @param $4 Текущий обрабатываемый флаг.
+GET_NORMALIZED_PATHS_FLAGS = $(if $1,$(if $(filter %$(SMCLN),$(firstword $1)),$(call GET_NORMALIZED_PATHS_FLAGS,$(wordlist 2,$(words $1),$1),$2,$3$(if $(subst $(SMCLN),,$(firstword $1)), $2"$(strip $(subst $(SMCLN),,$4 $(firstword $1)))",$(if $4, $2"$(strip $4)",)),),$(call GET_NORMALIZED_PATHS_FLAGS,$(wordlist 2,$(words $1),$1),$2,$3,$4 $(firstword $1))),$3)
+
+# Макрос получения флагов списка путей с учётом разделителей и пробелов.
+# @param $1 Множество путей в формате переменной окружения PATH, разделённые двоеточием или точкой с запятой.
+# @param $2 Префикс флага пути.
+GET_PATHS_FLAGS = $(call GET_NORMALIZED_PATHS_FLAGS,$(subst _\,$(COLON)\,$(subst $(SMCLN),$(SMCLN) ,$(subst $(COLON),$(SMCLN),$(subst $(COLON)\,_\,$1))))$(SMCLN),$2)
+
 
 # Make использует свой $(SHELL) во время работы. Не важно, из какой оболочки при этом он был запущен.
 # Т.к. команды на удаление и копирование могут отличаться, то лучше использовать универсальную запись:
@@ -438,6 +457,7 @@ TARGET_DEPENDENCY = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
 TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 
 
+
 # Prevent automatical removing some files by make:
 .SECONDARY:
 
@@ -465,6 +485,8 @@ $(TARGET_DEPENDENCY): %.cpp
 # Rule for C precompiled header:
 ifneq ($(TARGET_PCH_C_SOURCE),)
 $(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
+	$(info PCH_PREREQ_PREFIX_FLAGS: $($(CC_PREFIX)_PCH))
+	$(info PCH_PREREQ_CFLAGS: $(CFLAGS))
 	$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH)
 	@echo Precompiled C header was created.
 
