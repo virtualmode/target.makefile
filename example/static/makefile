@@ -3,7 +3,7 @@
 DEBUG := 1
 
 # For example. If compiler not uses default include paths, you can manually set them:
-#TARGET_INCLUDE_PATHS := ./:C:\bin\vc152
+#INCLUDE_PATH = ./;$(INCLUDE_PATH)
 
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.

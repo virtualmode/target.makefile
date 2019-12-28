@@ -27,11 +27,11 @@
 #		none - clean architecture code without headers.
 #		windows - known operating system.
 #		posix - POSIX-compatible operating system.
+#	LIBRARY_PATH - paths with static libraries in PATH environment variable format. You can include intermediate path also.
+#	LIBRARY_NAME - static library names used in build (optional and empty by default). Adjust to specific compiler.
+#	INCLUDE_PATH - paths with additional headers in PATH environment variable format.
 
 #	TARGET_ENTRY - optional variable with entry point name for executable binaries (optional and empty by default).
-#	TARGET_LIB_PATHS - paths with static libraries. You can include intermediate path also.
-#	TARGET_LIB_NAMES - static library names used in build (optional and empty by default). Adjust to specific compiler.
-#	TARGET_INCLUDE_PATHS - paths with additional headers.
 #	TARGET_PCH_C_HEADER - C header relative path for PCH.
 #	TARGET_PCH_C_SOURCE - relative path of the C source file to compile as PCH.
 #	TARGET_PCH_CPP_HEADER - CPP header relative path for PCH.
@@ -80,8 +80,10 @@
 #	RM - command to remove a file (default: rm -rf).
 #	CP - file copy command (default: cp -f).
 
-# This is obsolete instruction because target makefile can be included multiple times now. Default target:
-#.DEFAULT_GOAL = all
+
+########################################################################################################################
+#                                                Compilers configuration                                               #
+########################################################################################################################
 
 
 # Наборы инструментов по умолчанию для поддерживаемых платформ:
@@ -109,16 +111,10 @@ LINK_VERSIONS = 001 010
 
 # Общие флаги пакета компиляторов MSVC:
 CL_ASM_FLAGS = /Fa"$(basename $@)$(ASM)"
-#CL_PCH_FLAGS = /Yc /Fp"$@" /Fo"$(basename $@)$(OBJ)" "$<" # /Fo и исходник и так в CFLAGS будут присутствовать.
 CL_PCH_FLAGS = /Yc /Fp"$@"
-CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)" /Fo"$@" $(CL_ASM_FLAG) "$<"
-#CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)" /Fo"$@" $(CL_ASM_FLAG)
+CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
-# TODO: Вычисление путей заголовочных файлов может быть оптимизировано, а не вычисляться каждый запуск компилятора.
-CL_INCLUDE_FLAGS = $(call GET_PATHS_FLAGS,$(TARGET_INCLUDE_PATHS),/I)
-LINK_LIB_PATHS_FLAGS = $(addsuffix ",$(addprefix /LIBPATH:",$(TARGET_LIB_PATHS)))
-LINK_LIB_NAMES_FLAGS = $(addsuffix $(LIB)",$(addprefix ",$(TARGET_LIB_NAMES)))
 # HACK: Triple slash is used instead of double, because shell escapes characters (in not Cygwin windows environment).
 #CL_DEPENDENCIES_FLAGS_ORIGINAL = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$*.obj	$*.d:\1,gp' < $@.$$$$ | sed 's,\\\,/,g;s, ,\\\ ,gp' > $@; rm -f $@.$$$$
 CL_DEPENDENCIES_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,\\,/,g;s, ,\\ ,gp' > $@; rm -f $@.$$$$
@@ -126,63 +122,48 @@ CL_DEPENDENCIES_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /de
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
 # Данные программы проверены, предсказуемы и наиболее оптимизированы в отличие от современных наборов.
-ML001_AS_DEBUG = /AT /c /Fo "$@" "$^"
-ML001_AS_RELEASE = /AT /c /Fo "$@" "$^"
-ML64001_AS_DEBUG = $(ML001_AS_DEBUG)
-ML64001_AS_RELEASE = $(ML001_AS_RELEASE)
+ML001_AS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML64001_AS = $(ML001_AS)
 
 CL001_PCH = $(CL_PCH_FLAGS)
 CL001_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL001_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL001_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
-CL001_CC = /Fo"$@" $(CL_ASM_FLAGS) "$<"
-CL001_CXX = /Fo"$@" $(CL_ASM_FLAGS) "$<"
-CL001_CC_DEBUG = /AT /G2 /Gs /Gx /c /Zl
-CL001_CXX_DEBUG = $(CL001_CC_DEBUG)
-CL001_CC_RELEASE = /AT /G2 /Gs /Gx /c /Zl
-CL001_CXX_RELEASE = $(CL001_CC_RELEASE)
+
+CL001_CC = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
+CL001_CXX = $(CL001_CC)
 CL001_CC_DEPENDENCIES_RECIPE = $(CC) $(CL_DEPENDENCIES_FLAGS)
 CL001_CXX_DEPENDENCIES_RECIPE = $(CXX) $(CL_DEPENDENCIES_FLAGS)
 
-LIB001_AR = $(addprefix ",$(addsuffix ",$^))
-LIB001_AR_DEBUG = /OUT:"$@"
-LIB001_AR_RELEASE = /OUT:"$@"
+LIB001_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
-LINK001_LD = $(addprefix ",$(addsuffix ",$^)) , "$@" ,,,,
-LINK001_LD_DEBUG = /T /NOD
-LINK001_LD_RELEASE = /T /NOD
+LINK001_LD = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(TARGET_INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
 
 
 # Флаги актуальной версии MSVC для сборки цели.
 # Компиляторы Microsoft не поддерживают флаги для компиляции под определённую архитектуру процессора.
 # Для сборки необходимо запустить определённый экземпляр компилятора, установив переменную окружения.
-#ML010_AS_DEBUG = /AT /c /Fo "$@" "$^"
-#ML010_AS_RELEASE = /AT /c /Fo "$@" "$^"
-ML010_AS_DEBUG = /AT /c "$^"
-ML010_AS_RELEASE = /AT /c "$^"
-ML64010_AS_DEBUG = $(ML010_AS_DEBUG)
-ML64010_AS_RELEASE = $(ML010_AS_RELEASE)
+ML010_AS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML64010_AS = $(ML010_AS)
 
 CL010_PCH = $(CL_PCH_FLAGS)
 CL010_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL010_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL010_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
-CL010_CC = /Fo"$@" $(CL_ASM_FLAGS) "$<"
-CL010_CXX = /Fo"$@" $(CL_ASM_FLAGS) "$<"
-CL010_CC_DEBUG = /c $(CL_INCLUDE_FLAGS) /GS /W3 /Zc:wchar_t /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /RTC1 /Gd /Oy- /MDd /EHsc /nologo /diagnostics:classic
+
+CL010_CC = /c $(CL_INCLUDE_FLAGS) /W3 /Zc:wchar_t /Zc:inline /fp:precise /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /EHsc /nologo /diagnostics:classic $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
+CL010_CXX = $(CL010_CC)
+CL010_CC_DEBUG = /GS /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "_DEBUG" /RTC1 /MDd
 CL010_CXX_DEBUG = $(CL010_CC_DEBUG)
-CL010_CC_RELEASE = /c $(CL_INCLUDE_FLAGS) /GS- /GL /W3 /Gy /Zc:wchar_t /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /Zc:inline /fp:precise /D "NDEBUG" /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /Oi /MD /EHsc /nologo /diagnostics:classic
+CL010_CC_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
 CL010_CXX_RELEASE = $(CL010_CC_RELEASE)
 CL010_CC_DEPENDENCIES_RECIPE = $(CC) $(CL_DEPENDENCIES_FLAGS)
 CL010_CXX_DEPENDENCIES_RECIPE = $(CXX) $(CL_DEPENDENCIES_FLAGS)
 
-LIB010_AR = $(addprefix ",$(addsuffix ",$^))
-LIB010_AR_DEBUG = /OUT:"$@"
-LIB010_AR_RELEASE = /OUT:"$@"
+LIB010_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
-LINK010_LD = $(addprefix ",$(addsuffix ",$^))
-LINK010_LD_DEBUG = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /OUT:"$@"
-LINK010_LD_RELEASE = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /LTCG:incremental /NODEFAULTLIB /OUT:"$@"
+LINK010_LD = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+LINK010_LD_RELEASE = /LTCG:incremental /NODEFAULTLIB
 
 LINK010_LD_DEBUG_EXE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "ucrtd.lib" "vcruntimed.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL /DEBUG:FASTLINK
 LINK010_LD_RELEASE_EXE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL:NO /OPT:REF /SAFESEH:NO /OPT:ICF
@@ -199,9 +180,9 @@ GCC_PCH_FLAGS = "$<" -o "$@"
 GCC_PCH_OBJ_FLAGS = "$<" -o "$@"
 GCC_PCH_C_USE_FLAGS = -include "$(SRC_PCH_C_HEADER)"
 GCC_PCH_CPP_USE_FLAGS = -include "$(SRC_PCH_CPP_HEADER)"
-GCC_INCLUDE_FLAGS = $(addsuffix ",$(addprefix -I",$(TARGET_INCLUDE_PATHS)))
-GCC_LIB_NAMES_FLAGS = $(addprefix -l,$(TARGET_LIB_NAMES))
-GCC_LIB_PATHS_FLAGS = $(addprefix -L$(BUILD_INTERMEDIATE_PATH_PREFIX),$(TARGET_LIB_NAMES))
+GCC_INCLUDE_FLAGS = $(addsuffix ",$(addprefix -I",$(INCLUDE_PATH)))
+GCC_LIB_NAMES_FLAGS = $(addprefix -l,$(LIBRARY_NAME))
+GCC_LIB_PATHS_FLAGS = $(addprefix -L$(BUILD_INTERMEDIATE_PATH_PREFIX),$(LIBRARY_NAME))
 GCC_DEPENDENCIES_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
 # GCC:
@@ -224,6 +205,11 @@ GCC001_CXX_DEPENDENCIES_RECIPE = $(CXX) $(GCC_DEPENDENCIES_FLAGS)
 GCC001_LD = $(addprefix ",$(addsuffix ",$^))
 GCC001_LD_DEBUG = echo "Not implemented"
 GCC001_LD_RELEASE = echo "Not implemented"
+
+
+########################################################################################################################
+#                                               Makefile common macroses                                               #
+########################################################################################################################
 
 
 # Определение define создаёт переменную из нескольких строк в отличии от обычного присваивания и символа переноса.
@@ -304,6 +290,11 @@ GET_NORMALIZED_PATHS_FLAGS = $(if $1,$(if $(filter %$(SMCLN),$(firstword $1)),$(
 GET_PATHS_FLAGS = $(call GET_NORMALIZED_PATHS_FLAGS,$(subst _\,$(COLON)\,$(subst $(SMCLN),$(SMCLN) ,$(subst $(COLON),$(SMCLN),$(subst $(COLON)\,_\,$1))))$(SMCLN),$2)
 
 
+########################################################################################################################
+#                                             Platform-dependent parameters                                            #
+########################################################################################################################
+
+
 # Make использует свой $(SHELL) во время работы. Не важно, из какой оболочки при этом он был запущен.
 # Т.к. команды на удаление и копирование могут отличаться, то лучше использовать универсальную запись:
 # @cd folder && $(RM) * || true
@@ -311,6 +302,7 @@ GET_PATHS_FLAGS = $(call GET_NORMALIZED_PATHS_FLAGS,$(subst _\,$(COLON)\,$(subst
 # актуальная и для POSIX-систем, и для Windows, и всегда возвращается положительный результат (при этом вариант с
 # одиночным | каналом не будет выполнен, если первая команда завершится неудачно),
 # что предотвращает завершение сборки из-за возможных ошибок.
+AT := @
 RM := rm -rf
 CP := cp -f
 
@@ -368,11 +360,12 @@ endif
 ifndef TARGET_PATHS
 	TARGET_PATHS := $(call GET_PATHS,./)
 endif
-ifndef TARGET_INCLUDE_PATHS
-	TARGET_INCLUDE_PATHS := ./
+
+ifndef INCLUDE_PATH
+	INCLUDE_PATH := ./
 endif
-ifndef TARGET_LIB_PATHS
-	TARGET_LIB_PATHS := ./
+ifndef LIBRARY_PATH
+	LIBRARY_PATH := ./
 endif
 
 
@@ -429,6 +422,16 @@ endif
 $(eval $(call SET_TOOLS,$(DEFAULT_TOOLS)))
 
 
+########################################################################################################################
+#                                              Auxiliary values computing                                              #
+########################################################################################################################
+
+
+# Вычисление флагов путей заголовочных файлов и статических библиотек:
+CL_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,$(INCLUDE_PATH),/I)
+LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,$(LIBRARY_PATH),/LIBPATH)
+LINK_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(LIBRARY_NAME)))
+
 # Prepare C precompiled header variables:
 ifneq ($(TARGET_PCH_C_SOURCE),)
 TARGET_PCH_C_OBJ := $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(OBJ)
@@ -456,6 +459,10 @@ TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TA
 TARGET_DEPENDENCY = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
 TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 
+
+########################################################################################################################
+#                                                         Rules                                                        #
+########################################################################################################################
 
 
 # Prevent automatical removing some files by make:
@@ -487,40 +494,40 @@ ifneq ($(TARGET_PCH_C_SOURCE),)
 $(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
 	$(info PCH_PREREQ_PREFIX_FLAGS: $($(CC_PREFIX)_PCH))
 	$(info PCH_PREREQ_CFLAGS: $(CFLAGS))
-	$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH)
+	$(AT)$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH)
 	@echo Precompiled C header was created.
 
 $(TARGET_PCH_C_OBJ): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_PREREQUISITE)
-	$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH_OBJ)
-	$($(CC_PREFIX)_CC_ASM_RECIPE)
+	$(AT)$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH_OBJ)
+	$(AT)$($(CC_PREFIX)_CC_ASM_RECIPE)
 	@echo Precompiled C object was created.
 endif
 
 # Rule for CPP precompiled header:
 ifneq ($(TARGET_PCH_CPP_SOURCE),)
 $(TARGET_PCH_CPP_PREREQUISITE): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER)
-	$(CXX) $(CXXFLAGS) $($(CXX_PREFIX)_PCH)
+	$(AT)$(CXX) $(CXXFLAGS) $($(CXX_PREFIX)_PCH)
 	@echo Precompiled CPP header was created.
 
 $(TARGET_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_PREREQUISITE)
-	$(CXX) $(CXXFLAGS) $($(CXX_PREFIX)_PCH_OBJ)
-	$($(CXX_PREFIX)_CXX_ASM_RECIPE)
+	$(AT)$(CXX) $(CXXFLAGS) $($(CXX_PREFIX)_PCH_OBJ)
+	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 	@echo Precompiled CPP object was created.
 endif
 
 # C rule (dependencies are used by rebuild target to rebuild sources after usual build):
 $(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPENDENCY) $(TARGET_PCH_C_OBJ)
-	$(CC) $(CFLAGS) $(TARGET_PCH_C_USE)
-	$($(CC_PREFIX)_CC_ASM_RECIPE)
+	$(AT)$(CC) $(CFLAGS) $(TARGET_PCH_C_USE)
+	$(AT)$($(CC_PREFIX)_CC_ASM_RECIPE)
 
 # C++ rule:
 $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPENDENCY) $(TARGET_PCH_CPP_OBJ)
-	$(CXX) $(CXXFLAGS) $(TARGET_PCH_CPP_USE)
-	$($(CXX_PREFIX)_CXX_ASM_RECIPE)
+	$(AT)$(CXX) $(CXXFLAGS) $(TARGET_PCH_CPP_USE)
+	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 
 # Native Assembler compilation:
 $(TARGET_INTERMEDIATE_PATH)%$(ASM)$(OBJ): %$(ASM)
-	$(AS) $(ASFLAGS)
+	$(AT)$(AS) $(ASFLAGS)
 
 
 # Т.к. некоторые исполняемые файлы могут быть без расширения, цели на их создание могут совпасть с .PHONY целями, что
@@ -530,11 +537,11 @@ $(TARGET_INTERMEDIATE_PATH)%$(ASM)$(OBJ): %$(ASM)
 
 # Static library rule:
 $(TARGET_OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
-	$(AR) $(ARFLAGS)
+	$(AT)$(AR) $(ARFLAGS)
 
 # Generic linker rules for executables and dynamic link libraries:
 $(addprefix $(TARGET_OUTPUT_PATH)%,$(EXE) $(DLL)) $(TARGET_OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
-	$(LD) $(LDFLAGS)
+	$(AT)$(LD) $(LDFLAGS)
 
 # Default rule for unsupported types. To extend rule and allow binary extension usage,
 # add rule with same target and additional prerequisites:
@@ -542,8 +549,16 @@ $(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS)):
 	$(error Can't assembly binary file of $(suffix $@) type)
 
 
+########################################################################################################################
+#                                                       Debugging                                                      #
+########################################################################################################################
+
+
 # Подготовка сборки произведена. Вывод отладочной информации.
 ifdef DEBUG
+# Не скрывать вызовы:
+AT :=
+
 # Целевая конфигурация:
 $(info )
 $(info $(SPACE)                   CONFIGURATION = $(CONFIGURATION))
@@ -561,9 +576,9 @@ $(info )
 $(info $(SPACE)        TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
 $(info $(SPACE)              TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
 $(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
-$(info $(SPACE)            TARGET_INCLUDE_PATHS = $(TARGET_INCLUDE_PATHS))
-$(info $(SPACE)                TARGET_LIB_PATHS = $(TARGET_LIB_PATHS))
-$(info $(SPACE)                TARGET_LIB_NAMES = $(TARGET_LIB_NAMES))
+$(info $(SPACE)                    INCLUDE_PATH = $(INCLUDE_PATH))
+$(info $(SPACE)                    LIBRARY_PATH = $(LIBRARY_PATH))
+$(info $(SPACE)                    LIBRARY_NAME = $(LIBRARY_NAME))
 $(info $(SPACE)                  TARGET_PCH_C_* = $(TARGET_PCH_C_HEADER) $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_C_PREREQUISITE))
 $(info $(SPACE)                TARGET_PCH_CPP_* = $(TARGET_PCH_CPP_HEADER) $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_OBJ) $(TARGET_PCH_CPP_PREREQUISITE))
 $(info $(SPACE)                    TARGET_ENTRY = $(TARGET_ENTRY))
