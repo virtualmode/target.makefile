@@ -39,7 +39,7 @@
 
 
 # You can define this macroses at any time:
-#	TARGET_PATHS - additional paths with explicit ./ current directory that contains sources for assembling.
+#	TARGET_PATHS - additional paths that contains sources for assembling.
 #	TARGET_INTERMEDIATE_PATH - target path with intermediate build data.
 #	TARGET_OUTPUT_PATH - output path with target and its resources.
 
@@ -273,9 +273,9 @@ PARSE_MAJOR_VERSION := sed -ne 's/^[^0-9]*\([0-9]\+\)\..*/\1/g; s/\b[0-9]\b/00&/
 # @param $1 Множество с названием переменной утилиты, названием переменной флагов и значением по умолчанию.
 SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(call SET_TOOLS,$(wordlist 4,$(words $1),$1)),)
 
-# Рекурсивное получение списка каталогов проекта без временного и рабочего:
+# Рекурсивное получение списка каталогов проекта без временного и рабочего.
 # @param $1 Корневой каталог для чтения.
-GET_PATHS = $1 $(foreach d,$(filter-out %$(TARGET_INTERMEDIATE_PATH) %$(TARGET_OUTPUT_PATH),$(filter %/,$(wildcard $1*/))),$(call GET_PATHS,$d))
+GET_PATHS = $(foreach d,$(filter-out $1$(firstword $(subst /,$(SPACE),$(TARGET_INTERMEDIATE_PATH)))% $1$(firstword $(subst /,$(SPACE),$(TARGET_OUTPUT_PATH)))%,$(filter %/,$(wildcard $1*/))),$d $(call GET_PATHS,$d))
 
 # Макрос получения флагов списка путей.
 # @param $1 Множество нормализованных путей, разделённые точкой с запятой и пробелом.
@@ -305,6 +305,7 @@ GET_PATHS_FLAGS = $(call GET_NORMALIZED_PATHS_FLAGS,$(subst _\,$(COLON)\,$(subst
 AT := @
 RM := rm -rf
 CP := cp -f
+MD := mkdir -p
 
 # Определение текущей операционной системы и архитектуры:
 ifeq ($(OS),Windows_NT)
@@ -318,8 +319,10 @@ ifeq ($(OS),Windows_NT)
 	endif
 	# Определение встроенных команд Windows:
 	ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+		# TODO: Не все команды Windows поддерживают UNIX-пути. Необходимо добавить какой-то флаг, определяющий синтаксис путей.
 		RM := del /f /s /q
 		CP := copy /y
+		MD := mkdir
 	endif
 
 # Операционная система POSIX:
@@ -358,8 +361,11 @@ ifndef TARGET_OUTPUT_PATH
 	TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
 endif
 ifndef TARGET_PATHS
-	TARGET_PATHS := $(call GET_PATHS,./)
+	TARGET_PATHS := $(subst ./,,$(call GET_PATHS,./))
 endif
+
+# Каталоги, которые должны быть созданы до начала сборки:
+TARGET_BUILD_PATHS := $(TARGET_OUTPUT_PATH) $(TARGET_INTERMEDIATE_PATH) $(addprefix $(TARGET_INTERMEDIATE_PATH),$(TARGET_PATHS))
 
 ifndef INCLUDE_PATH
 	INCLUDE_PATH := ./
@@ -447,9 +453,9 @@ TARGET_PCH_CPP_USE := $($(CXX_PREFIX)_PCH_CPP_USE)
 endif
 
 # Determine all source files in project directories:
-TARGET_C_FILES = $(subst ./,,$(wildcard $(addsuffix *.c, $(TARGET_PATHS))))
-TARGET_CPP_FILES = $(subst ./,,$(wildcard $(addsuffix *.cpp, $(TARGET_PATHS))))
-TARGET_ASM_FILES = $(subst ./,,$(wildcard $(addsuffix *$(ASM), $(TARGET_PATHS))))
+TARGET_C_FILES = $(wildcard $(addsuffix *.c, $(TARGET_PATHS)))
+TARGET_CPP_FILES = $(wildcard $(addsuffix *.cpp, $(TARGET_PATHS)))
+TARGET_ASM_FILES = $(wildcard $(addsuffix *$(ASM), $(TARGET_PATHS)))
 
 # Object files without PCH. Specially without % pattern to free target from object paths dependency:
 TARGET_OBJS_FILES := $(addprefix $(TARGET_INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
@@ -467,6 +473,13 @@ TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FIL
 
 # Prevent automatical removing some files by make:
 .SECONDARY:
+
+# Generate intermediate folders before build:
+$(TARGET_BUILD_PATHS):
+	$(AT)$(MD) $@
+
+%.c %.cpp %$(ASM): $(TARGET_BUILD_PATHS)
+	@ # Include extensions of all sources in target to preinitialize build folders.
 
 # Generate dependencies of source files on header files:
 ifneq ($(MAKECMDGOALS),clean)
@@ -492,8 +505,8 @@ $(TARGET_DEPENDENCY): %.cpp
 # Rule for C precompiled header:
 ifneq ($(TARGET_PCH_C_SOURCE),)
 $(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
-	$(info PCH_PREREQ_PREFIX_FLAGS: $($(CC_PREFIX)_PCH))
-	$(info PCH_PREREQ_CFLAGS: $(CFLAGS))
+#	$(info PCH_PREREQ_PREFIX_FLAGS: $($(CC_PREFIX)_PCH))
+#	$(info PCH_PREREQ_CFLAGS: $(CFLAGS))
 	$(AT)$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH)
 	@echo Precompiled C header was created.
 
