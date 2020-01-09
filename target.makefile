@@ -110,7 +110,7 @@ LINK_VERSIONS = 001 010
 
 
 # Общие флаги пакета компиляторов MSVC:
-CL_ASM_FLAGS = /Fa"$(basename $@)$(ASM)"
+CL_ASM_FLAGS = /Fa"$(basename $@).asm"
 CL_PCH_FLAGS = /Yc /Fp"$@"
 CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
@@ -197,8 +197,8 @@ GCC001_CXX_DEBUG = $(GCC001_CC_DEBUG)
 GCC001_CC_RELEASE = echo "Not implemented"
 GCC001_CXX_RELEASE = $(GCC001_CC_RELEASE)
 # Специальные рецепты для отдельной сборки ассемблерных листингов:
-GCC001_CC_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@)$(ASM)" "$<"
-GCC001_CXX_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@)$(ASM)" "$<"
+GCC001_CC_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
+GCC001_CXX_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
 GCC001_CC_DEPENDENCIES_RECIPE = $(CC) $(GCC_DEPENDENCIES_FLAGS)
 GCC001_CXX_DEPENDENCIES_RECIPE = $(CXX) $(GCC_DEPENDENCIES_FLAGS)
 
@@ -384,7 +384,6 @@ SYS := .sys
 # Настройка сборки под выбранную платформу:
 ifeq ($(SYSTEM),none)
 	# Расширения абстрактной операционной системы:
-	ASM := .a
 	BIN := .b
 	DEP := .d
 	DLL := .s
@@ -400,7 +399,6 @@ ifeq ($(SYSTEM),none)
 	endif
 
 else ifeq ($(SYSTEM),windows)
-	ASM := .asm
 	DLL := .dll
 	EXE := .exe
 	LIB := .lib
@@ -414,7 +412,6 @@ else ifeq ($(SYSTEM),windows)
 	endif
 
 else
-	ASM := .s
 	DLL := .so
 	LIB := .a
 	OBJ := .o
@@ -453,9 +450,9 @@ TARGET_PCH_CPP_USE := $($(CXX_PREFIX)_PCH_CPP_USE)
 endif
 
 # Determine all source files in project directories:
-TARGET_C_FILES = $(wildcard $(addsuffix *.c, $(TARGET_PATHS)))
-TARGET_CPP_FILES = $(wildcard $(addsuffix *.cpp, $(TARGET_PATHS)))
-TARGET_ASM_FILES = $(wildcard $(addsuffix *$(ASM), $(TARGET_PATHS)))
+TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(TARGET_PATHS)))
+TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(TARGET_PATHS)))
+TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(TARGET_PATHS)) *.s $(addsuffix *.s,$(TARGET_PATHS)))
 
 # Object files without PCH. Specially without % pattern to free target from object paths dependency:
 TARGET_OBJS_FILES := $(addprefix $(TARGET_INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
@@ -478,7 +475,7 @@ TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FIL
 $(TARGET_BUILD_PATHS):
 	$(AT)$(MD) $@
 
-%.c %.cpp %$(ASM): $(TARGET_BUILD_PATHS)
+%.c %.cpp %.asm %.s: $(TARGET_BUILD_PATHS)
 	@ # Include extensions of all sources in target to preinitialize build folders.
 
 # Generate dependencies of source files on header files:
@@ -539,7 +536,8 @@ $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPENDENCY) $(TARGET_PCH_
 	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 
 # Native Assembler compilation:
-$(TARGET_INTERMEDIATE_PATH)%$(ASM)$(OBJ): %$(ASM)
+$(TARGET_INTERMEDIATE_PATH)%.s$(OBJ): %.s
+$(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
 	$(AT)$(AS) $(ASFLAGS)
 
 
@@ -577,7 +575,7 @@ $(info )
 $(info $(SPACE)                   CONFIGURATION = $(CONFIGURATION))
 $(info $(SPACE)           PLATFORM ARCHITECTURE = $(PLATFORM) $(ARCHITECTURE))
 $(info $(SPACE)                          SYSTEM = $(SYSTEM))
-$(info $(SPACE)                      EXTENSIONS = $(ASM) $(BIN) $(COM) $(DEP) $(DLL) $(EXE) $(LIB) $(OBJ) $(PCH) $(SYS))
+$(info $(SPACE)                      EXTENSIONS = $(BIN) $(COM) $(DEP) $(DLL) $(EXE) $(LIB) $(OBJ) $(PCH) $(SYS))
 
 # Текущая конфигурация:
 $(info )
@@ -622,7 +620,8 @@ $(info $(SPACE)                    TARGET_CPP_* = $(TARGET_INTERMEDIATE_PATH)%.c
 $(info $(SPACE)                                   	$(CXX) $(CXXFLAGS))
 $(info $(SPACE)                                   	$($(CXX_PREFIX)_CXX_ASM_RECIPE))
 
-$(info $(SPACE)                    TARGET_ASM_* = $(TARGET_INTERMEDIATE_PATH)%$(ASM)$(OBJ): %$(ASM))
+$(info $(SPACE)                    TARGET_ASM_* = $(TARGET_INTERMEDIATE_PATH)%.s$(OBJ): %.s)
+$(info $(SPACE)                                   $(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm)
 $(info $(SPACE)                                   	$(AS) $(ASFLAGS))
 
 $(info $(SPACE)                 TARGET_STATIC_* = $(TARGET_OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
