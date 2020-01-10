@@ -48,7 +48,7 @@
 #	ASM - assembler listing file extension.
 #	BIN - unknown binary file extension.
 #	COM - simple executable file extension.
-#	DEP - dependency file extension.
+#	DEP - depend file extension.
 #	DLL - dynamic link library extension.
 #	EXE - executable file extension.
 #	LIB - static library extension.
@@ -116,8 +116,8 @@ CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
 # HACK: Triple slash is used instead of double, because shell escapes characters (in not Cygwin windows environment).
-#CL_DEPENDENCIES_FLAGS_ORIGINAL = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$*.obj	$*.d:\1,gp' < $@.$$$$ | sed 's,\\\,/,g;s, ,\\\ ,gp' > $@; rm -f $@.$$$$
-CL_DEPENDENCIES_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,\\,/,g;s, ,\\ ,gp' > $@; rm -f $@.$$$$
+#CL_DEPEND_FLAGS_ORIGINAL = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$*.obj	$*.d:\1,gp' < $@.$$$$ | sed 's,\\\,/,g;s, ,\\\ ,gp' > $@; rm -f $@.$$$$
+CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,\\,/,g;s, ,\\ ,gp' > $@; rm -f $@.$$$$
 
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
@@ -132,8 +132,7 @@ CL001_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
 
 CL001_CC = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
 CL001_CXX = $(CL001_CC)
-CL001_CC_DEPENDENCIES_RECIPE = $(CC) $(CL_DEPENDENCIES_FLAGS)
-CL001_CXX_DEPENDENCIES_RECIPE = $(CXX) $(CL_DEPENDENCIES_FLAGS)
+CL001_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
 
 LIB001_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
@@ -157,8 +156,7 @@ CL010_CC_DEBUG = /GS /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "_DEBU
 CL010_CXX_DEBUG = $(CL010_CC_DEBUG)
 CL010_CC_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
 CL010_CXX_RELEASE = $(CL010_CC_RELEASE)
-CL010_CC_DEPENDENCIES_RECIPE = $(CC) $(CL_DEPENDENCIES_FLAGS)
-CL010_CXX_DEPENDENCIES_RECIPE = $(CXX) $(CL_DEPENDENCIES_FLAGS)
+CL010_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
 
 LIB010_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
@@ -183,7 +181,7 @@ GCC_PCH_CPP_USE_FLAGS = -include "$(SRC_PCH_CPP_HEADER)"
 GCC_INCLUDE_FLAGS = $(addsuffix ",$(addprefix -I",$(INCLUDE_PATH)))
 GCC_LIB_NAMES_FLAGS = $(addprefix -l,$(LIBRARY_NAME))
 GCC_LIB_PATHS_FLAGS = $(addprefix -L$(BUILD_INTERMEDIATE_PATH_PREFIX),$(LIBRARY_NAME))
-GCC_DEPENDENCIES_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
+GCC_DEPEND_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
 # GCC:
 GCC001_PCH = $(GCC_PCH_FLAGS)
@@ -199,8 +197,7 @@ GCC001_CXX_RELEASE = $(GCC001_CC_RELEASE)
 # Специальные рецепты для отдельной сборки ассемблерных листингов:
 GCC001_CC_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
 GCC001_CXX_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
-GCC001_CC_DEPENDENCIES_RECIPE = $(CC) $(GCC_DEPENDENCIES_FLAGS)
-GCC001_CXX_DEPENDENCIES_RECIPE = $(CXX) $(GCC_DEPENDENCIES_FLAGS)
+GCC001_DEPEND_RECIPE = $(CC) $(GCC_DEPEND_FLAGS)
 
 GCC001_LD = $(addprefix ",$(addsuffix ",$^))
 GCC001_LD_DEBUG = echo "Not implemented"
@@ -458,9 +455,9 @@ TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(TARGET_PATHS)) *.s $(ad
 TARGET_OBJS_FILES := $(addprefix $(TARGET_INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
 TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TARGET_OBJS_FILES))
 
-# Special dependency target to rebuild sources when headers changes (%.depend file in intermediate directory):
-TARGET_DEPENDENCY = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
-TARGET_DEPENDENCY_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
+# Special target to rebuild sources when headers changes (%.depend file in intermediate directory):
+TARGET_DEPEND = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
+TARGET_DEPEND_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 
 
 ########################################################################################################################
@@ -480,30 +477,28 @@ $(TARGET_BUILD_PATHS):
 
 # Generate dependencies of source files on header files:
 ifneq ($(MAKECMDGOALS),clean)
--include $(TARGET_DEPENDENCY_FILES)
+-include $(TARGET_DEPEND_FILES)
 endif
 
 # Don't build dependencies in usual builds:
 # Use automatic variables without := operator!
-TARGET_DEPENDENCY_ECHO =
+TARGET_DEPEND_ECHO =
 ifneq ($(MAKECMDGOALS),rebuild)
-TARGET_DEPENDENCY_RECIPE = touch -a $@
+TARGET_DEPEND_RECIPE = touch -a $@
 else
-TARGET_DEPENDENCY_ECHO = (echo "Updating $< dependencies...");
+TARGET_DEPEND_ECHO = (echo "Updating $< dependencies...");
 endif
 
 # Targets to generate dependencies:
-$(TARGET_DEPENDENCY): %.c
-	@$(TARGET_DEPENDENCY_ECHO)($(TARGET_DEPENDENCY_RECIPE))
+$(TARGET_DEPEND): %.c
+	@$(TARGET_DEPEND_ECHO)($($(CC_PREFIX)_DEPEND_RECIPE))
 
-$(TARGET_DEPENDENCY): %.cpp
-	@$(TARGET_DEPENDENCY_ECHO)($(TARGET_DEPENDENCY_RECIPE))
+$(TARGET_DEPEND): %.cpp
+	@$(TARGET_DEPEND_ECHO)($($(CXX_PREFIX)_DEPEND_RECIPE))
 
 # Rule for C precompiled header:
 ifneq ($(TARGET_PCH_C_SOURCE),)
 $(TARGET_PCH_C_PREREQUISITE): $(TARGET_PCH_C_SOURCE) $(TARGET_PCH_C_HEADER)
-#	$(info PCH_PREREQ_PREFIX_FLAGS: $($(CC_PREFIX)_PCH))
-#	$(info PCH_PREREQ_CFLAGS: $(CFLAGS))
 	$(AT)$(CC) $(CFLAGS) $($(CC_PREFIX)_PCH)
 	@echo Precompiled C header was created.
 
@@ -526,12 +521,12 @@ $(TARGET_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGE
 endif
 
 # C rule (dependencies are used by rebuild target to rebuild sources after usual build):
-$(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPENDENCY) $(TARGET_PCH_C_OBJ)
+$(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ)
 	$(AT)$(CC) $(CFLAGS) $(TARGET_PCH_C_USE)
 	$(AT)$($(CC_PREFIX)_CC_ASM_RECIPE)
 
 # C++ rule:
-$(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPENDENCY) $(TARGET_PCH_CPP_OBJ)
+$(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(CXX) $(CXXFLAGS) $(TARGET_PCH_CPP_USE)
 	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 
@@ -600,7 +595,7 @@ $(info $(SPACE)                  TARGET_C_FILES = $(TARGET_C_FILES))
 $(info $(SPACE)                TARGET_CPP_FILES = $(TARGET_CPP_FILES))
 $(info $(SPACE)                TARGET_ASM_FILES = $(TARGET_ASM_FILES))
 $(info $(SPACE)               TARGET_OBJS_FILES = $(TARGET_OBJS_FILES))
-$(info $(SPACE)         TARGET_DEPENDENCY_FILES = $(TARGET_DEPENDENCY_FILES))
+$(info $(SPACE)             TARGET_DEPEND_FILES = $(TARGET_DEPEND_FILES))
 
 $(info )
 $(info $(SPACE)            AR_PREFIX AR ARFLAGS = $(AR_PREFIX) $(AR) $(ARFLAGS))
@@ -612,11 +607,11 @@ $(info $(SPACE)                              RM = $(RM))
 
 # Вычисленные цели, пререквизиты и рецепты:
 $(info )
-$(info $(SPACE)                      TARGET_C_* = $(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPENDENCY) $(TARGET_PCH_C_OBJ))
+$(info $(SPACE)                      TARGET_C_* = $(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ))
 $(info $(SPACE)                                   	$(CC) $(CFLAGS))
 $(info $(SPACE)                                   	$($(CC_PREFIX)_CC_ASM_RECIPE))
 
-$(info $(SPACE)                    TARGET_CPP_* = $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPENDENCY) $(TARGET_PCH_CPP_OBJ))
+$(info $(SPACE)                    TARGET_CPP_* = $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ))
 $(info $(SPACE)                                   	$(CXX) $(CXXFLAGS))
 $(info $(SPACE)                                   	$($(CXX_PREFIX)_CXX_ASM_RECIPE))
 

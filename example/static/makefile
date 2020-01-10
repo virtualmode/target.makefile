@@ -4,6 +4,7 @@ DEBUG := 1
 
 # For example. If compiler not uses default include paths, you can manually set them:
 #INCLUDE_PATH = ./;$(INCLUDE_PATH)
+#TARGET_OUTPUT_PATH := ../bin/$(CONFIGURATION)/
 
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
