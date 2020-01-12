@@ -85,8 +85,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)" --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)" --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\debug\</IntDir>
     <OutDir>bin\debug\</OutDir>
@@ -94,8 +94,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)" --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)" --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=debug PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\debug\</IntDir>
     <OutDir>bin\debug\</OutDir>
@@ -103,8 +103,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)" --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)" --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=x86 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\release\</IntDir>
     <OutDir>bin\release\</OutDir>
@@ -112,8 +112,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeOutput>executable.exe</NMakeOutput>
-    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>make all CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)" --no-print-directory</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make rebuild CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) INCLUDE_PATH="$(IncludePath)" LIBRARY_PATH="$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)" --no-print-directory</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make clean CONFIGURATION=release PLATFORM=amd64 -C $(ProjectDir) --no-print-directory</NMakeCleanCommandLine>
     <IntDir>obj\release\</IntDir>
     <OutDir>bin\release\</OutDir>

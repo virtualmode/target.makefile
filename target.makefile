@@ -87,8 +87,8 @@
 
 
 # Наборы инструментов по умолчанию для поддерживаемых платформ:
-DEFAULT_TOOLS_WINDOWS := AR ARFLAGS lib AS ASFLAGS ml CC CFLAGS cl CXX CXXFLAGS cl LD LDFLAGS link
-DEFAULT_TOOLS_POSIX := AR ARFLAGS ar AS ASFLAGS ml CC CFLAGS gcc CXX CXXFLAGS gcc LD LDFLAGS gcc
+DEFAULT_TOOLS_WINDOWS := AR ARFLAGS lib AS ASFLAGS ml CC CFLAGS cl CXX CXXFLAGS cl LD LDFLAGS link LD EXEFLAGS link LD DLLFLAGS link
+DEFAULT_TOOLS_POSIX := AR ARFLAGS ar AS ASFLAGS ml CC CFLAGS gcc CXX CXXFLAGS gcc LD LDFLAGS gcc LD EXEFLAGS gcc LD DLLFLAGS gcc
 
 # Макросы определения версий поддерживаемых утилит.
 # AR программы обслуживания (сопровождения) архивов:
@@ -115,6 +115,7 @@ CL_PCH_FLAGS = /Yc /Fp"$@"
 CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
+# TODO: См. GCC. Может быть стоит перенести вычисление include каталогов и статические библиотеки сюда.
 # HACK: Triple slash is used instead of double, because shell escapes characters (in not Cygwin windows environment).
 #CL_DEPEND_FLAGS_ORIGINAL = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$*.obj	$*.d:\1,gp' < $@.$$$$ | sed 's,\\\,/,g;s, ,\\\ ,gp' > $@; rm -f $@.$$$$
 CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,\\,/,g;s, ,\\ ,gp' > $@; rm -f $@.$$$$
@@ -122,55 +123,52 @@ CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
 # Данные программы проверены, предсказуемы и наиболее оптимизированы в отличие от современных наборов.
-ML001_AS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
-ML64001_AS = $(ML001_AS)
+ML001_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML64001_ASFLAGS = $(ML001_ASFLAGS)
 
 CL001_PCH = $(CL_PCH_FLAGS)
 CL001_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL001_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL001_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
-
-CL001_CC = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
-CL001_CXX = $(CL001_CC)
 CL001_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
 
-LIB001_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+CL001_CFLAGS = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
+CL001_CXXFLAGS = $(CL001_CFLAGS)
 
-LINK001_LD = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(TARGET_INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
+LIB001_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+
+LINK001_LDFLAGS = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(TARGET_INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
 
 
 # Флаги актуальной версии MSVC для сборки цели.
 # Компиляторы Microsoft не поддерживают флаги для компиляции под определённую архитектуру процессора.
 # Для сборки необходимо запустить определённый экземпляр компилятора, установив переменную окружения.
-ML010_AS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
-ML64010_AS = $(ML010_AS)
+ML010_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML64010_ASFLAGS = $(ML010_ASFLAGS)
 
 CL010_PCH = $(CL_PCH_FLAGS)
 CL010_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL010_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL010_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
-
-CL010_CC = /c $(CL_INCLUDE_FLAGS) /W3 /Zc:wchar_t /Zc:inline /fp:precise /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /EHsc /nologo /diagnostics:classic $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
-CL010_CXX = $(CL010_CC)
-CL010_CC_DEBUG = /GS /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "_DEBUG" /RTC1 /MDd
-CL010_CXX_DEBUG = $(CL010_CC_DEBUG)
-CL010_CC_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
-CL010_CXX_RELEASE = $(CL010_CC_RELEASE)
 CL010_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
 
-LIB010_AR = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+CL010_CFLAGS = /c $(CL_INCLUDE_FLAGS) /W3 /Zc:wchar_t /Zc:inline /fp:precise /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /EHsc /nologo /diagnostics:classic $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
+CL010_CXXFLAGS = $(CL010_CFLAGS)
+CL010_CFLAGS_DEBUG = /GS /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "_DEBUG" /RTC1 /MDd
+CL010_CXXFLAGS_DEBUG = $(CL010_CFLAGS_DEBUG)
+CL010_CFLAGS_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
+CL010_CXXFLAGS_RELEASE = $(CL010_CFLAGS_RELEASE)
 
-LINK010_LD = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
-LINK010_LD_RELEASE = /LTCG:incremental /NODEFAULTLIB
+LIB010_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
-LINK010_LD_DEBUG_EXE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "ucrtd.lib" "vcruntimed.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL /DEBUG:FASTLINK
-LINK010_LD_RELEASE_EXE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL:NO /OPT:REF /SAFESEH:NO /OPT:ICF
+LINK010_LDFLAGS = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+LINK010_LDFLAGS_DEBUG   = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" "ucrtd.lib" "vcruntimed.lib" /INCREMENTAL /DEBUG:FASTLINK
+LINK010_LDFLAGS_RELEASE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL:NO /OPT:REF /SAFESEH:NO /OPT:ICF /LTCG:incremental /NODEFAULTLIB
+LINK010_LDFLAGS_X86 = /MACHINE:X86
+LINK010_LDFLAGS_AMD64 = /MACHINE:X64
 
-LINK010_LD_X86 = /MACHINE:X86
-LINK010_LD_AMD64 = /MACHINE:X64
-
-LINK010_LD_AMD64_EXE = /ALIGN:16 /DRIVER
-LINK010_LD_EXE = /MANIFEST:NO /NXCOMPAT /PDB:"$(TARGET_INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
+LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(TARGET_INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
+LINK010_EXEFLAGS_AMD64 = /ALIGN:16 /DRIVER
 
 
 # Общие флаги пакета компиляторов GCC:
@@ -188,20 +186,21 @@ GCC001_PCH = $(GCC_PCH_FLAGS)
 GCC001_PCH_OBJ = $(GCC_PCH_OBJ_FLAGS)
 GCC001_PCH_C_USE = $(GCC_PCH_C_USE_FLAGS)
 GCC001_PCH_CPP_USE = $(GCC_PCH_CPP_USE_FLAGS)
-GCC001_CC = "$<" -o "$@"
-GCC001_CXX = "$<" -o "$@"
-GCC001_CC_DEBUG = echo "Not implemented"
-GCC001_CXX_DEBUG = $(GCC001_CC_DEBUG)
-GCC001_CC_RELEASE = echo "Not implemented"
-GCC001_CXX_RELEASE = $(GCC001_CC_RELEASE)
-# Специальные рецепты для отдельной сборки ассемблерных листингов:
-GCC001_CC_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
-GCC001_CXX_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
 GCC001_DEPEND_RECIPE = $(CC) $(GCC_DEPEND_FLAGS)
 
-GCC001_LD = $(addprefix ",$(addsuffix ",$^))
-GCC001_LD_DEBUG = echo "Not implemented"
-GCC001_LD_RELEASE = echo "Not implemented"
+GCC001_CFLAGS = "$<" -o "$@"
+GCC001_CXXFLAGS = "$<" -o "$@"
+GCC001_CFLAGS_DEBUG = echo "Not implemented"
+GCC001_CXXFLAGS_DEBUG = $(GCC001_CFLAGS_DEBUG)
+GCC001_CFLAGS_RELEASE = echo "Not implemented"
+GCC001_CXXFLAGS_RELEASE = $(GCC001_CFLAGS_RELEASE)
+# Специальные рецепты для отдельной сборки ассемблерных листингов:
+GCC001_CFLAGS_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
+GCC001_CXXFLAGS_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
+
+GCC001_LDFLAGS = $(addprefix ",$(addsuffix ",$^))
+GCC001_LDFLAGS_DEBUG = echo "Not implemented"
+GCC001_LDFLAGS_RELEASE = echo "Not implemented"
 
 
 ########################################################################################################################
@@ -257,10 +256,11 @@ CHECK_TOOL = $(eval $1_PREFIX:=$(call GET_PREFIX,$(eval $1_NAME:=$(call UPPERCAS
 SET_FLAGS = $(eval $1:=$(call UPPERCASE,$(CASE_TABLE),$2))$(eval $1=$(addsuffix $(RPRNT),$(addprefix $$$(LPRNT),$($1))))
 
 # Макрос выбора утилиты по умолчанию.
+# Вычисляет версию утилиты только если она не была вычислена ранее.
 # @param $1 Название переменной утилиты.
 # @param $2 Название переменной флагов.
 # @param $3 Утилита по умолчанию.
-SET_TOOL = $(if $(filter file,$(origin $1)),,$(eval $1:=$3))$(call CHECK_TOOL,$1,$3)$(call SET_FLAGS,$2,$($1_PREFIX)_$1_$(CONFIGURATION) $($1_PREFIX)_$1)
+SET_TOOL = $(if $(filter file,$(origin $1)),,$(eval $1:=$3))$(if $($1_PREFIX),,$(call CHECK_TOOL,$1,$3))$(call SET_FLAGS,$2,$($1_PREFIX)_$2_$(CONFIGURATION) $($1_PREFIX)_$2_$(CONFIGURATION)_$(PLATFORM) $($1_PREFIX)_$2_$(PLATFORM) $($1_PREFIX)_$2)
 
 # Общая команда получения старшей версии из стандартного вывода. Производится поиск версии,
 # и дописываются ведущие ноли для последующей строковой сортировки из-за отсутствия числовой.
@@ -429,7 +429,7 @@ $(eval $(call SET_TOOLS,$(DEFAULT_TOOLS)))
 
 # Вычисление флагов путей заголовочных файлов и статических библиотек:
 CL_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,$(INCLUDE_PATH),/I)
-LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,$(LIBRARY_PATH),/LIBPATH)
+LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,$(LIBRARY_PATH),/LIBPATH$(COLON))
 LINK_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(LIBRARY_NAME)))
 
 # Prepare C precompiled header variables:
@@ -545,9 +545,13 @@ $(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
 $(TARGET_OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(AR) $(ARFLAGS)
 
-# Generic linker rules for executables and dynamic link libraries:
-$(addprefix $(TARGET_OUTPUT_PATH)%,$(EXE) $(DLL)) $(TARGET_OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
-	$(AT)$(LD) $(LDFLAGS)
+# Dynamic link library rule:
+$(TARGET_OUTPUT_PATH)%$(DLL): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+	$(AT)$(LD) $(DLLFLAGS) $(LDFLAGS)
+
+# Executable rule:
+$(TARGET_OUTPUT_PATH)%$(EXE) $(TARGET_OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+	$(AT)$(LD) $(EXEFLAGS) $(LDFLAGS)
 
 # Default rule for unsupported types. To extend rule and allow binary extension usage,
 # add rule with same target and additional prerequisites:

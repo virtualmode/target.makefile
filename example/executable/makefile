@@ -4,8 +4,8 @@ DEBUG := 1
 
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
-INCLUDE_PATH := ./:../static/
-LIBRARY_PATH := ../static/bin/$(CONFIGURATION)/
+override INCLUDE_PATH := $(INCLUDE_PATH):./:../static/
+override LIBRARY_PATH := $(LIBRARY_PATH):../static/bin/$(CONFIGURATION)/
 LIBRARY_NAME := static
 
 TARGET_ENTRY := main
