@@ -1,3 +1,26 @@
+# MIT License
+#
+# Copyright (c) 2019 virtualmode
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 # Tiny build makefile.
 # Файл сборки исходного кода в исполняемый машинный код.
 
@@ -115,15 +138,12 @@ CL_PCH_FLAGS = /Yc /Fp"$@"
 CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
-# TODO: См. GCC. Может быть стоит перенести вычисление include каталогов и статические библиотеки сюда.
-# HACK: Triple slash is used instead of double, because shell escapes characters (in not Cygwin windows environment).
-#CL_DEPEND_FLAGS_ORIGINAL = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$*.obj	$*.d:\1,gp' < $@.$$$$ | sed 's,\\\,/,g;s, ,\\\ ,gp' > $@; rm -f $@.$$$$
-CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,\\,/,g;s, ,\\ ,gp' > $@; rm -f $@.$$$$
+CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,$(BS),/,g;s, ,$(BS) ,gp' > $@; rm -f $@.$$$$
 
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
 # Данные программы проверены, предсказуемы и наиболее оптимизированы в отличие от современных наборов.
-ML001_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML001_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$<"
 ML64001_ASFLAGS = $(ML001_ASFLAGS)
 
 CL001_PCH = $(CL_PCH_FLAGS)
@@ -143,7 +163,7 @@ LINK001_LDFLAGS = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(TARGET_IN
 # Флаги актуальной версии MSVC для сборки цели.
 # Компиляторы Microsoft не поддерживают флаги для компиляции под определённую архитектуру процессора.
 # Для сборки необходимо запустить определённый экземпляр компилятора, установив переменную окружения.
-ML010_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$^"
+ML010_ASFLAGS = /AT /c /Fo "$(basename $@)$(OBJ)" "$<"
 ML64010_ASFLAGS = $(ML010_ASFLAGS)
 
 CL010_PCH = $(CL_PCH_FLAGS)
@@ -174,11 +194,8 @@ LINK010_EXEFLAGS_AMD64 = /ALIGN:16 /DRIVER
 # Общие флаги пакета компиляторов GCC:
 GCC_PCH_FLAGS = "$<" -o "$@"
 GCC_PCH_OBJ_FLAGS = "$<" -o "$@"
-GCC_PCH_C_USE_FLAGS = -include "$(SRC_PCH_C_HEADER)"
-GCC_PCH_CPP_USE_FLAGS = -include "$(SRC_PCH_CPP_HEADER)"
-GCC_INCLUDE_FLAGS = $(addsuffix ",$(addprefix -I",$(INCLUDE_PATH)))
-GCC_LIB_NAMES_FLAGS = $(addprefix -l,$(LIBRARY_NAME))
-GCC_LIB_PATHS_FLAGS = $(addprefix -L$(BUILD_INTERMEDIATE_PATH_PREFIX),$(LIBRARY_NAME))
+GCC_PCH_C_USE_FLAGS = -include "$(TARGET_PCH_C_HEADER)"
+GCC_PCH_CPP_USE_FLAGS = -include "$(TARGET_PCH_CPP_HEADER)"
 GCC_DEPEND_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
 # GCC:
@@ -190,17 +207,17 @@ GCC001_DEPEND_RECIPE = $(CC) $(GCC_DEPEND_FLAGS)
 
 GCC001_CFLAGS = "$<" -o "$@"
 GCC001_CXXFLAGS = "$<" -o "$@"
-GCC001_CFLAGS_DEBUG = echo "Not implemented"
+GCC001_CFLAGS_DEBUG = echo Not implemented
 GCC001_CXXFLAGS_DEBUG = $(GCC001_CFLAGS_DEBUG)
-GCC001_CFLAGS_RELEASE = echo "Not implemented"
+GCC001_CFLAGS_RELEASE = echo Not implemented
 GCC001_CXXFLAGS_RELEASE = $(GCC001_CFLAGS_RELEASE)
 # Специальные рецепты для отдельной сборки ассемблерных листингов:
 GCC001_CFLAGS_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
 GCC001_CXXFLAGS_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
 
 GCC001_LDFLAGS = $(addprefix ",$(addsuffix ",$^))
-GCC001_LDFLAGS_DEBUG = echo "Not implemented"
-GCC001_LDFLAGS_RELEASE = echo "Not implemented"
+GCC001_LDFLAGS_DEBUG = echo Not implemented
+GCC001_LDFLAGS_RELEASE = echo Not implemented
 
 
 ########################################################################################################################
@@ -215,6 +232,7 @@ GCC001_LDFLAGS_RELEASE = echo "Not implemented"
 # Команду для оболочки можно вызвать через $(shell) функцию, @echo или обратные апострофы.
 
 # Специальные символы для экранирования:
+BLANK :=
 SPACE :=
 SPACE +=
 COMMA := ,
@@ -234,13 +252,14 @@ UPPERCASE = $(if $1,$$(subst $(word 1,$1),$(word 2,$1),$(call UPPERCASE,$(wordli
 # Проверка цепочки версий и возвращение минимальной поддерживаемой.
 # @param $1 Множество поддерживаемых версий и требуемая в отсортированном виде.
 # @param $2 Требуемая версия.
+# @param #3 Имя проверяемой утилиты без пути и расширения для отладки.
 # @return Минимальная поддерживаемая версия из множества. Пустое значение, если версия не поддерживается или не была корректно определена.
-CHECK_VERSION = $(if $2,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2)),)
+CHECK_VERSION = $(if $2,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2)),$(info Can't determine $3 version))
 
 # Вычисление префикса флагов выбранной утилиты.
 # @param $1 Имя проверяемой утилиты без пути и расширения.
 # @return Префикс флагов, если проверяемая утилита соответствует выбранной.
-GET_PREFIX = $1$(call CHECK_VERSION,$(sort $($1_VERSION) $($1_VERSIONS)),$($1_VERSION))
+GET_PREFIX = $1$(call CHECK_VERSION,$(sort $($1_VERSION) $($1_VERSIONS)),$($1_VERSION),$1)
 
 # Упрощенное вычисление префикса флагов выбранной утилиты.
 # @param $1 Название переменной утилиты.
@@ -303,6 +322,8 @@ AT := @
 RM := rm -rf
 CP := cp -f
 MD := mkdir -p
+# Triple slash is used instead of double, because some shells can additionally escape it:
+BS := \\$(BLANK)
 
 # Определение текущей операционной системы и архитектуры:
 ifeq ($(OS),Windows_NT)
@@ -316,10 +337,11 @@ ifeq ($(OS),Windows_NT)
 	endif
 	# Определение встроенных команд Windows:
 	ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
-		# TODO: Не все команды Windows поддерживают UNIX-пути. Необходимо добавить какой-то флаг, определяющий синтаксис путей.
+		# TODO Не все команды Windows поддерживают UNIX-пути. Необходимо добавить какой-то флаг, определяющий синтаксис путей.
 		RM := del /f /s /q
 		CP := copy /y
 		MD := mkdir
+		BS := \\\$(BLANK)
 	endif
 
 # Операционная система POSIX:
@@ -363,13 +385,6 @@ endif
 
 # Каталоги, которые должны быть созданы до начала сборки:
 TARGET_BUILD_PATHS := $(TARGET_OUTPUT_PATH) $(TARGET_INTERMEDIATE_PATH) $(addprefix $(TARGET_INTERMEDIATE_PATH),$(TARGET_PATHS))
-
-ifndef INCLUDE_PATH
-	INCLUDE_PATH := ./
-endif
-ifndef LIBRARY_PATH
-	LIBRARY_PATH := ./
-endif
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
@@ -428,9 +443,12 @@ $(eval $(call SET_TOOLS,$(DEFAULT_TOOLS)))
 
 
 # Вычисление флагов путей заголовочных файлов и статических библиотек:
-CL_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,$(INCLUDE_PATH),/I)
-LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,$(LIBRARY_PATH),/LIBPATH$(COLON))
+CL_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,./:$(INCLUDE_PATH),/I)
+LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,./:$(LIBRARY_PATH),/LIBPATH$(COLON))
 LINK_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(LIBRARY_NAME)))
+GCC_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,./:$(INCLUDE_PATH),-I)
+GCC_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,./:$(LIBRARY_PATH),-L)
+GCC_LIB_NAMES_FLAGS := $(addsuffix $(LIB),$(addprefix -l,$(LIBRARY_NAME)))
 
 # Prepare C precompiled header variables:
 ifneq ($(TARGET_PCH_C_SOURCE),)
@@ -472,29 +490,23 @@ TARGET_DEPEND_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 $(TARGET_BUILD_PATHS):
 	$(AT)$(MD) $@
 
-%.c %.cpp %.asm %.s: $(TARGET_BUILD_PATHS)
-	@ # Include extensions of all sources in target to preinitialize build folders.
+.PHONY: peachtree
+peachtree: $(TARGET_BUILD_PATHS)
+
+# Special target to create output folders:
+-include peachtree
 
 # Generate dependencies of source files on header files:
-ifneq ($(MAKECMDGOALS),clean)
 -include $(TARGET_DEPEND_FILES)
-endif
-
-# Don't build dependencies in usual builds:
-# Use automatic variables without := operator!
-TARGET_DEPEND_ECHO =
-ifneq ($(MAKECMDGOALS),rebuild)
-TARGET_DEPEND_RECIPE = touch -a $@
-else
-TARGET_DEPEND_ECHO = (echo "Updating $< dependencies...");
-endif
 
 # Targets to generate dependencies:
 $(TARGET_DEPEND): %.c
-	@$(TARGET_DEPEND_ECHO)($($(CC_PREFIX)_DEPEND_RECIPE))
+	@echo Updating $< dependencies...
+	$(AT)$($(CC_PREFIX)_DEPEND_RECIPE)
 
 $(TARGET_DEPEND): %.cpp
-	@$(TARGET_DEPEND_ECHO)($($(CXX_PREFIX)_DEPEND_RECIPE))
+	@echo Updating $< dependencies...
+	$(AT)$($(CXX_PREFIX)_DEPEND_RECIPE)
 
 # Rule for C precompiled header:
 ifneq ($(TARGET_PCH_C_SOURCE),)
@@ -564,6 +576,7 @@ $(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS)):
 ########################################################################################################################
 
 
+# TODO Необходимо обновить отладочные поля после рефакторинга.
 # Подготовка сборки произведена. Вывод отладочной информации.
 ifdef DEBUG
 # Не скрывать вызовы:

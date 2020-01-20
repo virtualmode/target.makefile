@@ -4,7 +4,7 @@ DEBUG := 1
 
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
-override INCLUDE_PATH := $(INCLUDE_PATH):./:../static/
+override INCLUDE_PATH := $(INCLUDE_PATH):../static/
 override LIBRARY_PATH := $(LIBRARY_PATH):../static/bin/$(CONFIGURATION)/
 LIBRARY_NAME := static
 
@@ -21,7 +21,9 @@ include ../../target.makefile # Global makefile with common functional.
 all: $(TARGET_OUTPUT_PATH)executable
 	@echo "Executable done." >&2
 
-#	@cp "$?" "$(BUILD_OUTPUT_PATH)"
+# Rebuild target (build dependencies):
+.PHONY: rebuild
+rebuild: all
 
 # Cleaning target:
 .PHONY: clean

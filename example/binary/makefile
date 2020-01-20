@@ -14,6 +14,10 @@ include ../../target.makefile
 all: $(TARGET_OUTPUT_PATH)binary$(COM)
 	@echo "Binary done." >&2
 
+# Rebuild target (build dependencies):
+.PHONY: rebuild
+rebuild: all
+
 # Cleaning target:
 .PHONY: clean
 clean:
