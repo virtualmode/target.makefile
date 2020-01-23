@@ -18,7 +18,7 @@ include ../../target.makefile # Global makefile with common functional.
 
 # Default phony target of copying builded files to output directory:
 .PHONY: all
-all: $(TARGET_OUTPUT_PATH)executable
+all: $(OUTPUT_PATH)executable
 	@echo "Executable done." >&2
 
 # Rebuild target (build dependencies):
@@ -28,8 +28,8 @@ rebuild: all
 # Cleaning target:
 .PHONY: clean
 clean:
-	@cd $(TARGET_OUTPUT_PATH) && $(RM) * || true
-	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * || true
+	@cd $(OUTPUT_PATH) && $(RM) * || true
+	@cd $(INTERMEDIATE_PATH) && $(RM) * || true
 
 
 # End of makefile.

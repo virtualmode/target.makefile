@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2019 virtualmode
+# Copyright (c) 2019 virtualmode <https://github.com/virtualmode>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,12 +63,11 @@
 
 # You can define this macroses at any time:
 #	TARGET_PATHS - additional paths that contains sources for assembling.
-#	TARGET_INTERMEDIATE_PATH - target path with intermediate build data.
-#	TARGET_OUTPUT_PATH - output path with target and its resources.
+#	INTERMEDIATE_PATH - target path with intermediate build data.
+#	OUTPUT_PATH - output path with target and its resources.
 
 
 # Automatically initialized macroses that can be used:
-#	ASM - assembler listing file extension.
 #	BIN - unknown binary file extension.
 #	COM - simple executable file extension.
 #	DEP - depend file extension.
@@ -99,7 +98,9 @@
 #	LD - program for object linking.
 #		gcc - GNU Compiler Collection.
 #		link - Microsoft linker.
-#	LDFLAGS - linker flags.
+#	LDFLAGS - common linker flags.
+#	EXEFLAGS - extra linker flags for executable files.
+#	DLLFLAGS - extra linker flags for dynamic link libraries.
 #	RM - command to remove a file (default: rm -rf).
 #	CP - file copy command (default: cp -f).
 
@@ -111,22 +112,26 @@
 
 # Наборы инструментов по умолчанию для поддерживаемых платформ:
 DEFAULT_TOOLS_WINDOWS := AR ARFLAGS lib AS ASFLAGS ml CC CFLAGS cl CXX CXXFLAGS cl LD LDFLAGS link LD EXEFLAGS link LD DLLFLAGS link
-DEFAULT_TOOLS_POSIX := AR ARFLAGS ar AS ASFLAGS ml CC CFLAGS gcc CXX CXXFLAGS gcc LD LDFLAGS gcc LD EXEFLAGS gcc LD DLLFLAGS gcc
+DEFAULT_TOOLS_POSIX := AR ARFLAGS ar AS ASFLAGS as CC CFLAGS gcc CXX CXXFLAGS gcc LD LDFLAGS gcc LD EXEFLAGS gcc LD DLLFLAGS gcc
 
 # Макросы определения версий поддерживаемых утилит.
 # AR программы обслуживания (сопровождения) архивов:
+AR_VERSION = $(shell $(AR) --version 2>&1 | $(PARSE_MAJOR_VERSION))
+AR_VERSIONS = 001
 LIB_VERSION = $(shell $(AR) 2>&1 | $(PARSE_MAJOR_VERSION))
 LIB_VERSIONS = 001 010
 # AS ассемблеры:
+AS_VERSION = $(shell $(AS) --version 2>&1 | $(PARSE_MAJOR_VERSION))
+AS_VERSIONS = 001
 ML_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
 ML_VERSIONS = 001 010
 ML64_VERSION = $(shell $(AS) 2>&1 | $(PARSE_MAJOR_VERSION))
 ML64_VERSIONS = 001 010
 # CC/CXX компиляторы C/C++:
-CL_VERSION = $(shell $(CC) 2>&1 | $(PARSE_MAJOR_VERSION))
-CL_VERSIONS = 001 010
 GCC_VERSION = $(shell $(CC) --version 2>&1 | $(PARSE_MAJOR_VERSION))
 GCC_VERSIONS = 001
+CL_VERSION = $(shell $(CC) 2>&1 | $(PARSE_MAJOR_VERSION))
+CL_VERSIONS = 001 010
 # LD компоновщики:
 LINK_VERSION = $(shell $(LD) /HELP 2>&1 | $(PARSE_MAJOR_VERSION))
 LINK_VERSIONS = 001 010
@@ -138,7 +143,7 @@ CL_PCH_FLAGS = /Yc /Fp"$@"
 CL_PCH_OBJ_FLAGS = /Yc /Fp"$(basename $@)$(PCH)"
 CL_PCH_C_USE_FLAGS = /Yu"$(TARGET_PCH_C_HEADER)" /Fp"$(TARGET_PCH_C_PREREQUISITE)"
 CL_PCH_CPP_USE_FLAGS = /Yu"$(TARGET_PCH_CPP_HEADER)" /Fp"$(TARGET_PCH_CPP_PREREQUISITE)"
-CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(TARGET_INTERMEDIATE_PATH)$*.obj	$(TARGET_INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,$(BS),/,g;s, ,$(BS) ,gp' > $@; rm -f $@.$$$$
+CL_DEPEND_FLAGS = $(CL_INCLUDE_FLAGS) /E /showIncludes $< 2> $@.$$$$ > /dev/null; sed -n 's,^Note: including file: *\(.*\),$(INTERMEDIATE_PATH)$*.obj	$(INTERMEDIATE_PATH)$*.d:\1,gp' < $@.$$$$ | sed 's,$(BS),/,g;s, ,$(BS) ,gp' > $@; rm -f $@.$$$$
 
 
 # Флаги компиляторов Microsoft Visual Studio 1.XX для сборки и в 16-битном режиме:
@@ -151,13 +156,14 @@ CL001_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL001_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL001_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
 CL001_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
-
 CL001_CFLAGS = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
 CL001_CXXFLAGS = $(CL001_CFLAGS)
 
 LIB001_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
-LINK001_LDFLAGS = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(TARGET_INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
+LINK001_LDFLAGS = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
+LINK001_DLLFLAGS = /DLL
+LINK001_EXEFLAGS = /ENTRY:"$(TARGET_ENTRY)"
 
 
 # Флаги актуальной версии MSVC для сборки цели.
@@ -171,12 +177,11 @@ CL010_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL010_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL010_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
 CL010_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
-
 CL010_CFLAGS = /c $(CL_INCLUDE_FLAGS) /W3 /Zc:wchar_t /Zc:inline /fp:precise /D "_WINDOWS" /D "_UNICODE" /D "UNICODE" /errorReport:prompt /WX- /Zc:forScope /Gd /Oy- /EHsc /nologo /diagnostics:classic $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
 CL010_CXXFLAGS = $(CL010_CFLAGS)
-CL010_CFLAGS_DEBUG = /GS /ZI /Od /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "_DEBUG" /RTC1 /MDd
+CL010_CFLAGS_DEBUG = /GS /ZI /Od /Fd"$(INTERMEDIATE_PATH)vc141.pdb" /D "_DEBUG" /RTC1 /MDd
 CL010_CXXFLAGS_DEBUG = $(CL010_CFLAGS_DEBUG)
-CL010_CFLAGS_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(TARGET_INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
+CL010_CFLAGS_RELEASE = /GS- /GL /Gy /Zi /Gm- /O2 /Fd"$(INTERMEDIATE_PATH)vc141.pdb" /D "NDEBUG" /Oi /MD
 CL010_CXXFLAGS_RELEASE = $(CL010_CFLAGS_RELEASE)
 
 LIB010_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
@@ -186,38 +191,37 @@ LINK010_LDFLAGS_DEBUG   = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kerne
 LINK010_LDFLAGS_RELEASE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL:NO /OPT:REF /SAFESEH:NO /OPT:ICF /LTCG:incremental /NODEFAULTLIB
 LINK010_LDFLAGS_X86 = /MACHINE:X86
 LINK010_LDFLAGS_AMD64 = /MACHINE:X64
-
-LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(TARGET_INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
+LINK010_DLLFLAGS = /DLL
+LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
 LINK010_EXEFLAGS_AMD64 = /ALIGN:16 /DRIVER
 
 
+# Common GCC flags:
 # Общие флаги пакета компиляторов GCC:
-GCC_PCH_FLAGS = "$<" -o "$@"
-GCC_PCH_OBJ_FLAGS = "$<" -o "$@"
 GCC_PCH_C_USE_FLAGS = -include "$(TARGET_PCH_C_HEADER)"
 GCC_PCH_CPP_USE_FLAGS = -include "$(TARGET_PCH_CPP_HEADER)"
 GCC_DEPEND_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
 
-# GCC:
+# GNU Compiler Collection:
+AS001_ASFLAGS = -c "$<" -o "$@"
+
 GCC001_PCH = $(GCC_PCH_FLAGS)
 GCC001_PCH_OBJ = $(GCC_PCH_OBJ_FLAGS)
 GCC001_PCH_C_USE = $(GCC_PCH_C_USE_FLAGS)
 GCC001_PCH_CPP_USE = $(GCC_PCH_CPP_USE_FLAGS)
 GCC001_DEPEND_RECIPE = $(CC) $(GCC_DEPEND_FLAGS)
+GCC001_CC_ASM_RECIPE = $(CC) $(GCC_INCLUDE_FLAGS) -S -o "$(basename $@).s" "$<"
+GCC001_CXX_ASM_RECIPE = $(CXX) $(GCC_INCLUDE_FLAGS) -S -o "$(basename $@).s" "$<"
+GCC001_CFLAGS = -c $(GCC_INCLUDE_FLAGS) "$<" -o "$@"
+GCC001_CXXFLAGS = -c $(GCC_INCLUDE_FLAGS) "$<" -o "$@"
 
-GCC001_CFLAGS = "$<" -o "$@"
-GCC001_CXXFLAGS = "$<" -o "$@"
-GCC001_CFLAGS_DEBUG = echo Not implemented
-GCC001_CXXFLAGS_DEBUG = $(GCC001_CFLAGS_DEBUG)
-GCC001_CFLAGS_RELEASE = echo Not implemented
-GCC001_CXXFLAGS_RELEASE = $(GCC001_CFLAGS_RELEASE)
-# Специальные рецепты для отдельной сборки ассемблерных листингов:
-GCC001_CFLAGS_ASM_RECIPE = $(CC) $(CFLAGS) -S -o "$(basename $@).s" "$<"
-GCC001_CXXFLAGS_ASM_RECIPE = $(CXX) $(CXXFLAGS) -S -o "$(basename $@).s" "$<"
+AR001_ARFLAGS = -crs $@ $^
 
-GCC001_LDFLAGS = $(addprefix ",$(addsuffix ",$^))
-GCC001_LDFLAGS_DEBUG = echo Not implemented
-GCC001_LDFLAGS_RELEASE = echo Not implemented
+GCC001_LDFLAGS = $(addprefix ",$(addsuffix ",$^)) -lpthread -o $@
+GCC001_LDFLAGS_DEBUG = $(GCC_LIB_PATHS_FLAGS) $(GCC_LIB_NAMES_FLAGS)
+GCC001_LDFLAGS_RELEASE = $(GCC_LIB_PATHS_FLAGS) $(GCC_LIB_NAMES_FLAGS)
+GCC001_DLLFLAGS = -shared
+GCC001_EXEFLAGS = -e $(TARGET_ENTRY)
 
 
 ########################################################################################################################
@@ -291,7 +295,7 @@ SET_TOOLS = $(if $1,$(call SET_TOOL,$(word 1,$1),$(word 2,$1),$(word 3,$1))$(cal
 
 # Рекурсивное получение списка каталогов проекта без временного и рабочего.
 # @param $1 Корневой каталог для чтения.
-GET_PATHS = $(foreach d,$(filter-out $1$(firstword $(subst /,$(SPACE),$(TARGET_INTERMEDIATE_PATH)))% $1$(firstword $(subst /,$(SPACE),$(TARGET_OUTPUT_PATH)))%,$(filter %/,$(wildcard $1*/))),$d $(call GET_PATHS,$d))
+GET_PATHS = $(foreach d,$(filter-out $1$(firstword $(subst /,$(SPACE),$(INTERMEDIATE_PATH)))% $1$(firstword $(subst /,$(SPACE),$(OUTPUT_PATH)))%,$(filter %/,$(wildcard $1*/))),$d $(call GET_PATHS,$d))
 
 # Макрос получения флагов списка путей.
 # @param $1 Множество нормализованных путей, разделённые точкой с запятой и пробелом.
@@ -349,7 +353,7 @@ else
 	UNAME_S := $(shell uname -s)
 	UNAME_P := $(shell uname -p)
 	ifneq ($(filter Linux Darwin,$(UNAME_S)),)
-		HOST_SYSTEM := posix;
+		HOST_SYSTEM := posix
 	endif
 	ifeq ($(UNAME_P),x86_64)
 		HOST_PLATFORM := amd64
@@ -373,18 +377,18 @@ endif
 
 # Setup building paths by default:
 # Определение каталогов сборки по умолчанию:
-ifndef TARGET_INTERMEDIATE_PATH
-	TARGET_INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
+ifndef INTERMEDIATE_PATH
+	INTERMEDIATE_PATH := obj/$(CONFIGURATION)/
 endif
-ifndef TARGET_OUTPUT_PATH
-	TARGET_OUTPUT_PATH := bin/$(CONFIGURATION)/
+ifndef OUTPUT_PATH
+	OUTPUT_PATH := bin/$(CONFIGURATION)/
 endif
 ifndef TARGET_PATHS
 	TARGET_PATHS := $(subst ./,,$(call GET_PATHS,./))
 endif
 
 # Каталоги, которые должны быть созданы до начала сборки:
-TARGET_BUILD_PATHS := $(TARGET_OUTPUT_PATH) $(TARGET_INTERMEDIATE_PATH) $(addprefix $(TARGET_INTERMEDIATE_PATH),$(TARGET_PATHS))
+TARGET_BUILD_PATHS := $(OUTPUT_PATH) $(INTERMEDIATE_PATH) $(addprefix $(INTERMEDIATE_PATH),$(TARGET_PATHS))
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
@@ -448,19 +452,19 @@ LINK_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,./:$(LIBRARY_PATH),/LIBPATH$(COLO
 LINK_LIB_NAMES_FLAGS := $(addsuffix $(LIB)",$(addprefix ",$(LIBRARY_NAME)))
 GCC_INCLUDE_FLAGS := $(call GET_PATHS_FLAGS,./:$(INCLUDE_PATH),-I)
 GCC_LIB_PATHS_FLAGS := $(call GET_PATHS_FLAGS,./:$(LIBRARY_PATH),-L)
-GCC_LIB_NAMES_FLAGS := $(addsuffix $(LIB),$(addprefix -l,$(LIBRARY_NAME)))
+GCC_LIB_NAMES_FLAGS := $(addsuffix $(LIB),$(addprefix -l:,$(LIBRARY_NAME)))
 
 # Prepare C precompiled header variables:
 ifneq ($(TARGET_PCH_C_SOURCE),)
-TARGET_PCH_C_OBJ := $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(OBJ)
-TARGET_PCH_C_PREREQUISITE = $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(PCH)
+TARGET_PCH_C_OBJ := $(INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(OBJ)
+TARGET_PCH_C_PREREQUISITE = $(INTERMEDIATE_PATH)$(TARGET_PCH_C_SOURCE)$(PCH)
 TARGET_PCH_C_USE := $($(CC_PREFIX)_PCH_C_USE)
 endif
 
 # Prepare CPP precompiled header variables:
 ifneq ($(TARGET_PCH_CPP_SOURCE),)
-TARGET_PCH_CPP_OBJ := $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(OBJ)
-TARGET_PCH_CPP_PREREQUISITE = $(TARGET_INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(PCH)
+TARGET_PCH_CPP_OBJ := $(INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(OBJ)
+TARGET_PCH_CPP_PREREQUISITE = $(INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(PCH)
 TARGET_PCH_CPP_USE := $($(CXX_PREFIX)_PCH_CPP_USE)
 endif
 
@@ -470,11 +474,11 @@ TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(TARGET_PATHS)))
 TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(TARGET_PATHS)) *.s $(addsuffix *.s,$(TARGET_PATHS)))
 
 # Object files without PCH. Specially without % pattern to free target from object paths dependency:
-TARGET_OBJS_FILES := $(addprefix $(TARGET_INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
+TARGET_OBJS_FILES := $(addprefix $(INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
 TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TARGET_OBJS_FILES))
 
 # Special target to rebuild sources when headers changes (%.depend file in intermediate directory):
-TARGET_DEPEND = $(TARGET_INTERMEDIATE_PATH)%$(DEP)
+TARGET_DEPEND = $(INTERMEDIATE_PATH)%$(DEP)
 TARGET_DEPEND_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 
 
@@ -533,18 +537,18 @@ $(TARGET_PCH_CPP_OBJ): $(TARGET_PCH_CPP_SOURCE) $(TARGET_PCH_CPP_HEADER) $(TARGE
 endif
 
 # C rule (dependencies are used by rebuild target to rebuild sources after usual build):
-$(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ)
+$(INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ)
 	$(AT)$(CC) $(CFLAGS) $(TARGET_PCH_C_USE)
 	$(AT)$($(CC_PREFIX)_CC_ASM_RECIPE)
 
 # C++ rule:
-$(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ)
+$(INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(CXX) $(CXXFLAGS) $(TARGET_PCH_CPP_USE)
 	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 
 # Native Assembler compilation:
-$(TARGET_INTERMEDIATE_PATH)%.s$(OBJ): %.s
-$(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
+$(INTERMEDIATE_PATH)%.s$(OBJ): %.s
+$(INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
 	$(AT)$(AS) $(ASFLAGS)
 
 
@@ -554,20 +558,20 @@ $(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
 # в свою очередь должны совпасть с реальными файлами с путями или другими промежуточными целями.
 
 # Static library rule:
-$(TARGET_OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+$(OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(AR) $(ARFLAGS)
 
 # Dynamic link library rule:
-$(TARGET_OUTPUT_PATH)%$(DLL): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+$(OUTPUT_PATH)%$(DLL): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(LD) $(DLLFLAGS) $(LDFLAGS)
 
 # Executable rule:
-$(TARGET_OUTPUT_PATH)%$(EXE) $(TARGET_OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
+$(OUTPUT_PATH)%$(EXE) $(OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(LD) $(EXEFLAGS) $(LDFLAGS)
 
 # Default rule for unsupported types. To extend rule and allow binary extension usage,
 # add rule with same target and additional prerequisites:
-$(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS)):
+$(addprefix $(OUTPUT_PATH)%,$(BIN) $(SYS)):
 	$(error Can't assembly binary file of $(suffix $@) type)
 
 
@@ -577,6 +581,7 @@ $(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS)):
 
 
 # TODO Необходимо обновить отладочные поля после рефакторинга.
+# TODO Хорошая идея https://github.com/mbcrawfo/GenericMakefile/commit/628589c1cd5e00d645207d78090608f4b550d863
 # Подготовка сборки произведена. Вывод отладочной информации.
 ifdef DEBUG
 # Не скрывать вызовы:
@@ -596,8 +601,8 @@ $(info $(SPACE)                     HOST_SYSTEM = $(HOST_SYSTEM))
 
 # Параметры сборки:
 $(info )
-$(info $(SPACE)        TARGET_INTERMEDIATE_PATH = $(TARGET_INTERMEDIATE_PATH))
-$(info $(SPACE)              TARGET_OUTPUT_PATH = $(TARGET_OUTPUT_PATH))
+$(info $(SPACE)               INTERMEDIATE_PATH = $(INTERMEDIATE_PATH))
+$(info $(SPACE)                     OUTPUT_PATH = $(OUTPUT_PATH))
 $(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
 $(info $(SPACE)                    INCLUDE_PATH = $(INCLUDE_PATH))
 $(info $(SPACE)                    LIBRARY_PATH = $(LIBRARY_PATH))
@@ -624,25 +629,25 @@ $(info $(SPACE)                              RM = $(RM))
 
 # Вычисленные цели, пререквизиты и рецепты:
 $(info )
-$(info $(SPACE)                      TARGET_C_* = $(TARGET_INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ))
+$(info $(SPACE)                      TARGET_C_* = $(INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ))
 $(info $(SPACE)                                   	$(CC) $(CFLAGS))
 $(info $(SPACE)                                   	$($(CC_PREFIX)_CC_ASM_RECIPE))
 
-$(info $(SPACE)                    TARGET_CPP_* = $(TARGET_INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ))
+$(info $(SPACE)                    TARGET_CPP_* = $(INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ))
 $(info $(SPACE)                                   	$(CXX) $(CXXFLAGS))
 $(info $(SPACE)                                   	$($(CXX_PREFIX)_CXX_ASM_RECIPE))
 
-$(info $(SPACE)                    TARGET_ASM_* = $(TARGET_INTERMEDIATE_PATH)%.s$(OBJ): %.s)
-$(info $(SPACE)                                   $(TARGET_INTERMEDIATE_PATH)%.asm$(OBJ): %.asm)
+$(info $(SPACE)                    TARGET_ASM_* = $(INTERMEDIATE_PATH)%.s$(OBJ): %.s)
+$(info $(SPACE)                                   $(INTERMEDIATE_PATH)%.asm$(OBJ): %.asm)
 $(info $(SPACE)                                   	$(AS) $(ASFLAGS))
 
-$(info $(SPACE)                 TARGET_STATIC_* = $(TARGET_OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
+$(info $(SPACE)                 TARGET_STATIC_* = $(OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
 $(info $(SPACE)                                   	$(AR) $(ARFLAGS))
 
-$(info $(SPACE)             TARGET_EXECUTABLE_* = $(addprefix $(TARGET_OUTPUT_PATH)%,$(EXE) $(DLL)) $(TARGET_OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
+$(info $(SPACE)             TARGET_EXECUTABLE_* = $(addprefix $(OUTPUT_PATH)%,$(EXE) $(DLL)) $(OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
 $(info $(SPACE)                                   	$(LD) $(LDFLAGS))
 
-$(info $(SPACE)                 TARGET_BINARY_* = $(addprefix $(TARGET_OUTPUT_PATH)%,$(BIN) $(SYS)):)
+$(info $(SPACE)                 TARGET_BINARY_* = $(addprefix $(OUTPUT_PATH)%,$(BIN) $(SYS)):)
 $(info )
 endif
 

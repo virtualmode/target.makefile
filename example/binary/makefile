@@ -11,7 +11,7 @@ TARGET_ENTRY := main
 include ../../target.makefile
 
 .PHONY: all
-all: $(TARGET_OUTPUT_PATH)binary$(COM)
+all: $(OUTPUT_PATH)binary$(COM)
 	@echo "Binary done." >&2
 
 # Rebuild target (build dependencies):
@@ -21,8 +21,8 @@ rebuild: all
 # Cleaning target:
 .PHONY: clean
 clean:
-	@cd $(TARGET_OUTPUT_PATH) && $(RM) * || true
-	@cd $(TARGET_INTERMEDIATE_PATH) && $(RM) * || true
+	@cd $(OUTPUT_PATH) && $(RM) * || true
+	@cd $(INTERMEDIATE_PATH) && $(RM) * || true
 
 
 # End of makefile.

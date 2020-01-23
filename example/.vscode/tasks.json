@@ -5,34 +5,69 @@
     "tasks": [
         {
             "label": "Debug AMD64",
-            "type": "shell",
-            "command": "make all CONFIGURATION=debug PLATFORM=amd64 -C ${workspaceFolder} --no-print-directory",
-            "windows":{
-                // Example for Windows specific command:
-                //"command": "make all CONFIGURATION=debug PLATFORM=amd64 AS=C:/bin/vc152/ml.exe -C ${workspaceFolder} --no-print-directory"
-            },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "dependsOn": [
+                "Executable Debug AMD64",
+                "Binary Debug AMD64"
+            ],
+            "problemMatcher": []
         },
         {
-            "label": "Release AMD64",
+            "label": "Static Debug AMD64",
             "type": "shell",
-            "command": "make all CONFIGURATION=release PLATFORM=amd64 -C ${workspaceFolder} --no-print-directory",
+            "command": "make all CONFIGURATION=debug PLATFORM=amd64 -C ${workspaceFolder}/static --no-print-directory",
+            "windows": {},
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Executable Debug AMD64",
+            "type": "shell",
+            "command": "make all CONFIGURATION=debug PLATFORM=amd64 -C ${workspaceFolder}/executable --no-print-directory",
+            "group": "build",
+            "dependsOn": [
+                "Static Debug AMD64"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Binary Debug AMD64",
+            "type": "shell",
+            "command": "make all CONFIGURATION=debug PLATFORM=x86 -C ${workspaceFolder}/binary --no-print-directory",
             "group": "build"
         },
         {
-            "label": "Debug x86",
-            "type": "shell",
-            "command": "make all CONFIGURATION=debug PLATFORM=x86 -C ${workspaceFolder} --no-print-directory",
-            "group": "build"
+            "label": "Clean Debug",
+            "group": "none",
+            "dependsOn": [
+                "Executable Clean Debug",
+                "Binary Clean Debug"
+            ],
+            "problemMatcher": []
         },
         {
-            "label": "Release x86",
+            "label": "Static Clean Debug",
             "type": "shell",
-            "command": "make all CONFIGURATION=release PLATFORM=x86 -C ${workspaceFolder} --no-print-directory",
-            "group": "build"
+            "command": "make clean CONFIGURATION=debug -C ${workspaceFolder}/static --no-print-directory",
+            "group": "none"
+        },
+        {
+            "label": "Executable Clean Debug",
+            "type": "shell",
+            "command": "make clean CONFIGURATION=debug -C ${workspaceFolder}/executable --no-print-directory",
+            "group": "none",
+            "dependsOn": [
+                "Static Clean Debug"
+            ]
+        },
+        {
+            "label": "Binary Clean Debug",
+            "type": "shell",
+            "command": "make clean CONFIGURATION=debug -C ${workspaceFolder}/binary --no-print-directory",
+            "group": "none"
         },
         {
             "label": "Tests",
