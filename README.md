@@ -24,7 +24,6 @@ include target.makefile # Makefile with common functional.
 all: $(OUTPUT_PATH)example$(LIB)
 	@echo "Static library done." >&2
 
-# Cleaning target:
 .PHONY: clean
 clean:
 	@cd $(OUTPUT_PATH) && $(RM) * || true
@@ -33,7 +32,7 @@ clean:
 Then run `make all` to build static library within your current environment.
 
 ### Example with multiple standalone projects and its own makefiles
-```
+```make
 include ../target.makefile
 
 # Default target to use make without arguments:
@@ -70,7 +69,6 @@ static:
 all: binary executable static
 	@echo "Solution ready." >&2
 
-# Rebuild target:
 .PHONY: rebuild
 rebuild: all
 
@@ -79,7 +77,6 @@ rebuild: all
 # But "| true" pipe will return result if the first command success.
 .PHONY: clean
 clean:
-	@cd bin/$(CONFIGURATION) && $(RM) * || true
 	$(MAKE) $(MAKECMDGOALS) -C binary
 	$(MAKE) $(MAKECMDGOALS) -C executable
 	$(MAKE) $(MAKECMDGOALS) -C static
@@ -97,10 +94,13 @@ uninstall:
 
 ### Example with one makefile for several projects
 This build mode is still experimental feature with some limitations.
-```
-DEBUG := 1 # Some debug information.
-TARGET_ENTRY := main # Entry point for executable target.
-LIBRARY_NAME := static # Used static libraries.
+```make
+# Enable debug information:
+DEBUG := 1
+# Entry point for executable target:
+TARGET_ENTRY := main
+# External static libraries:
+LIBRARY_NAME := static
 
 # Additional include and library paths:
 override INCLUDE_PATH := $(INCLUDE_PATH):static/:executable/
@@ -122,7 +122,6 @@ all: executable
 
 .PHONY: clean
 clean:
-	@cd bin/$(CONFIGURATION) && $(RM) * || true
 	@cd $(OUTPUT_PATH) && $(RM) * || true
 	@cd $(INTERMEDIATE_PATH) && $(RM) * || true
 ```

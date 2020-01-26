@@ -62,7 +62,7 @@
 
 
 # You can define this macroses at any time:
-#	TARGET_PATHS - additional paths that contains sources for assembling.
+#	SOURCE_PATHS - additional paths that contains sources for assembling.
 #	INTERMEDIATE_PATH - target path with intermediate build data.
 #	OUTPUT_PATH - output path with target and its resources.
 
@@ -201,6 +201,7 @@ LINK010_EXEFLAGS_AMD64 = /ALIGN:16 /DRIVER
 GCC_PCH_C_USE_FLAGS = -include "$(TARGET_PCH_C_HEADER)"
 GCC_PCH_CPP_USE_FLAGS = -include "$(TARGET_PCH_CPP_HEADER)"
 GCC_DEPEND_FLAGS = $(GCC_INCLUDE_FLAGS) -M -c $< > $@.$$$$; sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; rm -f $@.$$$$
+
 
 # GNU Compiler Collection:
 AS001_ASFLAGS = -c "$<" -o "$@"
@@ -383,12 +384,12 @@ endif
 ifndef OUTPUT_PATH
 	OUTPUT_PATH := bin/$(CONFIGURATION)/
 endif
-ifndef TARGET_PATHS
-	TARGET_PATHS := $(subst ./,,$(call GET_PATHS,./))
+ifndef SOURCE_PATHS
+	SOURCE_PATHS := $(subst ./,,$(call GET_PATHS,./))
 endif
 
 # Каталоги, которые должны быть созданы до начала сборки:
-TARGET_BUILD_PATHS := $(OUTPUT_PATH) $(INTERMEDIATE_PATH) $(addprefix $(INTERMEDIATE_PATH),$(TARGET_PATHS))
+TARGET_PATHS := $(OUTPUT_PATH) $(INTERMEDIATE_PATH) $(addprefix $(INTERMEDIATE_PATH),$(SOURCE_PATHS))
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
@@ -469,9 +470,9 @@ TARGET_PCH_CPP_USE := $($(CXX_PREFIX)_PCH_CPP_USE)
 endif
 
 # Determine all source files in project directories:
-TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(TARGET_PATHS)))
-TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(TARGET_PATHS)))
-TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(TARGET_PATHS)) *.s $(addsuffix *.s,$(TARGET_PATHS)))
+TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(SOURCE_PATHS)))
+TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(SOURCE_PATHS)))
+TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(SOURCE_PATHS)) *.s $(addsuffix *.s,$(SOURCE_PATHS)))
 
 # Object files without PCH. Specially without % pattern to free target from object paths dependency:
 TARGET_OBJS_FILES := $(addprefix $(INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
@@ -491,11 +492,11 @@ TARGET_DEPEND_FILES := $(addsuffix $(DEP),$(TARGET_C_FILES) $(TARGET_CPP_FILES))
 .SECONDARY:
 
 # Generate intermediate folders before build:
-$(TARGET_BUILD_PATHS):
+$(TARGET_PATHS):
 	$(AT)$(MD) $@
 
 .PHONY: peachtree
-peachtree: $(TARGET_BUILD_PATHS)
+peachtree: $(TARGET_PATHS)
 
 # Special target to create output folders:
 -include peachtree
@@ -580,8 +581,9 @@ $(addprefix $(OUTPUT_PATH)%,$(BIN) $(SYS)):
 ########################################################################################################################
 
 
-# TODO Необходимо обновить отладочные поля после рефакторинга.
-# TODO Хорошая идея https://github.com/mbcrawfo/GenericMakefile/commit/628589c1cd5e00d645207d78090608f4b550d863
+# Additionally use "make print-VARIABLE" to debug particular variable:
+print-%: ; @echo $* = $($*)
+
 # Подготовка сборки произведена. Вывод отладочной информации.
 ifdef DEBUG
 # Не скрывать вызовы:
@@ -599,11 +601,16 @@ $(info )
 $(info $(SPACE) HOST_PLATFORM HOST_ARCHITECTURE = $(HOST_PLATFORM) $(HOST_ARCHITECTURE))
 $(info $(SPACE)                     HOST_SYSTEM = $(HOST_SYSTEM))
 
+$(info )
+$(info $(SPACE)                              RM = $(RM))
+$(info $(SPACE)                              CP = $(CP))
+$(info $(SPACE)                              MD = $(MD))
+
 # Параметры сборки:
 $(info )
 $(info $(SPACE)               INTERMEDIATE_PATH = $(INTERMEDIATE_PATH))
 $(info $(SPACE)                     OUTPUT_PATH = $(OUTPUT_PATH))
-$(info $(SPACE)                    TARGET_PATHS = $(TARGET_PATHS))
+$(info $(SPACE)                    SOURCE_PATHS = $(SOURCE_PATHS))
 $(info $(SPACE)                    INCLUDE_PATH = $(INCLUDE_PATH))
 $(info $(SPACE)                    LIBRARY_PATH = $(LIBRARY_PATH))
 $(info $(SPACE)                    LIBRARY_NAME = $(LIBRARY_NAME))
@@ -618,6 +625,7 @@ $(info $(SPACE)                TARGET_CPP_FILES = $(TARGET_CPP_FILES))
 $(info $(SPACE)                TARGET_ASM_FILES = $(TARGET_ASM_FILES))
 $(info $(SPACE)               TARGET_OBJS_FILES = $(TARGET_OBJS_FILES))
 $(info $(SPACE)             TARGET_DEPEND_FILES = $(TARGET_DEPEND_FILES))
+$(info $(SPACE)                   TARGET_DEPEND = $(TARGET_DEPEND))
 
 $(info )
 $(info $(SPACE)            AR_PREFIX AR ARFLAGS = $(AR_PREFIX) $(AR) $(ARFLAGS))
@@ -625,29 +633,8 @@ $(info $(SPACE)            AS_PREFIX AS ASFLAGS = $(AS_PREFIX) $(AS) $(ASFLAGS))
 $(info $(SPACE)             CC_PREFIX CC CFLAGS = $(CC_PREFIX) $(CC) $(CFLAGS))
 $(info $(SPACE)         CXX_PREFIX CXX CXXFLAGS = $(CXX_PREFIX) $(CXX) $(CXXFLAGS))
 $(info $(SPACE)            LD_PREFIX LD LDFLAGS = $(LD_PREFIX) $(LD) $(LDFLAGS))
-$(info $(SPACE)                              RM = $(RM))
-
-# Вычисленные цели, пререквизиты и рецепты:
-$(info )
-$(info $(SPACE)                      TARGET_C_* = $(INTERMEDIATE_PATH)%.c$(OBJ): %.c $(TARGET_DEPEND) $(TARGET_PCH_C_OBJ))
-$(info $(SPACE)                                   	$(CC) $(CFLAGS))
-$(info $(SPACE)                                   	$($(CC_PREFIX)_CC_ASM_RECIPE))
-
-$(info $(SPACE)                    TARGET_CPP_* = $(INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ))
-$(info $(SPACE)                                   	$(CXX) $(CXXFLAGS))
-$(info $(SPACE)                                   	$($(CXX_PREFIX)_CXX_ASM_RECIPE))
-
-$(info $(SPACE)                    TARGET_ASM_* = $(INTERMEDIATE_PATH)%.s$(OBJ): %.s)
-$(info $(SPACE)                                   $(INTERMEDIATE_PATH)%.asm$(OBJ): %.asm)
-$(info $(SPACE)                                   	$(AS) $(ASFLAGS))
-
-$(info $(SPACE)                 TARGET_STATIC_* = $(OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
-$(info $(SPACE)                                   	$(AR) $(ARFLAGS))
-
-$(info $(SPACE)             TARGET_EXECUTABLE_* = $(addprefix $(OUTPUT_PATH)%,$(EXE) $(DLL)) $(OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ))
-$(info $(SPACE)                                   	$(LD) $(LDFLAGS))
-
-$(info $(SPACE)                 TARGET_BINARY_* = $(addprefix $(OUTPUT_PATH)%,$(BIN) $(SYS)):)
+$(info $(SPACE)           LD_PREFIX LD DLLFLAGS = $(LD_PREFIX) $(LD) $(DLLFLAGS))
+$(info $(SPACE)           LD_PREFIX LD EXEFLAGS = $(LD_PREFIX) $(LD) $(EXEFLAGS))
 $(info )
 endif
 

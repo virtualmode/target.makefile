@@ -5,10 +5,6 @@ DEBUG := 1
 # Default target:
 .DEFAULT_GOAL = all
 
-# For example. If compiler not uses default include paths, you can manually set them:
-#INCLUDE_PATH = ./;$(INCLUDE_PATH)
-#OUTPUT_PATH := ../bin/$(CONFIGURATION)/
-
 # Prepare some macroses before include.
 # Optionally set the paths for Viual Studio IntelliSense.
 TARGET_PCH_C_HEADER := Core/globalc.h
@@ -18,23 +14,17 @@ TARGET_PCH_CPP_SOURCE := Core/globalcpp.cpp
 
 include ../../target.makefile # Global makefile with common functional.
 
-#$(info DEBUG = $(INTERMEDIATE_PATH)static$(LIB))
-
-# Default phony target of copying builded files to output directory:
 .PHONY: all
 all: $(OUTPUT_PATH)static$(LIB)
 	@echo "Static library done." >&2
 
-# Rebuild target (build dependencies):
 .PHONY: rebuild
 rebuild: all
 
-# Cleaning target:
 .PHONY: clean
 clean:
 	@cd $(OUTPUT_PATH) && $(RM) * || true
 	@cd $(INTERMEDIATE_PATH) && $(RM) * || true
-
 
 # End of makefile.
 # Конец файла сборки.

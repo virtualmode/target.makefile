@@ -4,3 +4,4 @@
 * TODO Improvements
 ** TODO It's possible to replace parameters such a TARGET_ENTRY, LIBRARY_NAME, etc. to something like this $(parameter_name)$(target_extension). It will expand the ability to build multiple projects with one makefile. But still need to think about TARGET_PCH_* parameters.
 ** TODO Probably ASFLAGS can't cover multiple assembler usage. Think how to fix.
+** TODO Move Microsoft Linker *.ilk files from output to intermediate directory.
