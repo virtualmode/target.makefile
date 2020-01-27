@@ -1,4 +1,5 @@
-# Extensible tiny cross-platform makefile for [GNU Make](https://www.gnu.org/software/make/)
+# Extensible cross-platform tiny makefile for [GNU Make](https://www.gnu.org/software/make/)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/virtualmode/target.makefile/blob/master/LICENSE)  
 Tiny target.makefile is used to simplify assembling tasks of different binary files.
 
 ## Features
