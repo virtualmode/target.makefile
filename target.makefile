@@ -474,8 +474,10 @@ TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(SOURCE_PATHS)))
 TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(SOURCE_PATHS)))
 TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(SOURCE_PATHS)) *.s $(addsuffix *.s,$(SOURCE_PATHS)))
 
-# Object files without PCH. Specially without % pattern to free target from object paths dependency:
-TARGET_OBJS_FILES := $(addprefix $(INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_C_FILES) $(TARGET_CPP_FILES) $(TARGET_ASM_FILES)))
+# Object files without PCH and % pattern to free target from object paths dependency.
+# The one known linker have not entry point parameter and depends on file order,
+# therefore assembler object files are first by default.
+TARGET_OBJS_FILES := $(addprefix $(INTERMEDIATE_PATH),$(addsuffix $(OBJ),$(TARGET_ASM_FILES) $(TARGET_C_FILES) $(TARGET_CPP_FILES)))
 TARGET_OBJS_FILES := $(filter-out $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ),$(TARGET_OBJS_FILES))
 
 # Special target to rebuild sources when headers changes (%.depend file in intermediate directory):

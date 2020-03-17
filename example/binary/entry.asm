@@ -2,8 +2,8 @@
 
 .286						; CPU type.
 
-.model TINY					; Memory of model.
-	extrn _main:near		; Prototype of C func.
+.model TINY					; Memory model.
+	extrn _main:near		; Prototype of C function.
 
 .code
 	org 07c00h				; For boot sector.
