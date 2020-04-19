@@ -62,7 +62,7 @@
 
 
 # You can define this macroses at any time:
-#	SOURCE_PATHS - additional paths that contains sources for assembling.
+#	SOURCE_PATHS - paths that contains sources for assembling.
 #	INTERMEDIATE_PATH - target path with intermediate build data.
 #	OUTPUT_PATH - output path with target and its resources.
 
@@ -108,6 +108,13 @@
 ########################################################################################################################
 #                                                Compilers configuration                                               #
 ########################################################################################################################
+
+
+# Установка общих параметров:
+ifdef TARGET_ENTRY
+LINK_ENTRY_FLAGS := /ENTRY:$(TARGET_ENTRY)
+GCC_ENTRY_FLAGS := -e $(TARGET_ENTRY)
+endif
 
 
 # Наборы инструментов по умолчанию для поддерживаемых платформ:
@@ -156,14 +163,14 @@ CL001_PCH_OBJ = $(CL_PCH_OBJ_FLAGS)
 CL001_PCH_C_USE = $(CL_PCH_C_USE_FLAGS)
 CL001_PCH_CPP_USE = $(CL_PCH_CPP_USE_FLAGS)
 CL001_DEPEND_RECIPE = $(CC) $(CL_DEPEND_FLAGS)
-CL001_CFLAGS = /AT /G2 /Gs /Gx /c /Zl $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
+CL001_CFLAGS = /AT /G2 /Gs /Gx /c /Zl $(CL_INCLUDE_FLAGS) $(CL_ASM_FLAGS) /Fo"$(basename $@)$(OBJ)" "$<"
 CL001_CXXFLAGS = $(CL001_CFLAGS)
 
 LIB001_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
 LINK001_LDFLAGS = /T /NOD $(addprefix ",$(addsuffix ",$^)) , "$@" , "$(INTERMEDIATE_PATH)$(basename $(notdir $@)).map" ,,,
 LINK001_DLLFLAGS = /DLL
-LINK001_EXEFLAGS = /ENTRY:"$(TARGET_ENTRY)"
+LINK001_EXEFLAGS = $(LINK_ENTRY_FLAGS)
 
 
 # Флаги актуальной версии MSVC для сборки цели.
@@ -192,7 +199,7 @@ LINK010_LDFLAGS_RELEASE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kerne
 LINK010_LDFLAGS_X86 = /MACHINE:X86
 LINK010_LDFLAGS_AMD64 = /MACHINE:X64
 LINK010_DLLFLAGS = /DLL
-LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE /ENTRY:"$(TARGET_ENTRY)" /MERGE:".rdata=.text" /TLBID:1
+LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE $(LINK_ENTRY_FLAGS) /MERGE:".rdata=.text" /TLBID:1
 LINK010_EXEFLAGS_AMD64 = /ALIGN:16 /DRIVER
 
 
@@ -222,7 +229,7 @@ GCC001_LDFLAGS = $(addprefix ",$(addsuffix ",$^)) -lpthread -o $@
 GCC001_LDFLAGS_DEBUG = $(GCC_LIB_PATHS_FLAGS) $(GCC_LIB_NAMES_FLAGS)
 GCC001_LDFLAGS_RELEASE = $(GCC_LIB_PATHS_FLAGS) $(GCC_LIB_NAMES_FLAGS)
 GCC001_DLLFLAGS = -shared
-GCC001_EXEFLAGS = -e $(TARGET_ENTRY)
+GCC001_EXEFLAGS = $(GCC_ENTRY_FLAGS)
 
 
 ########################################################################################################################
@@ -469,10 +476,17 @@ TARGET_PCH_CPP_PREREQUISITE = $(INTERMEDIATE_PATH)$(TARGET_PCH_CPP_SOURCE)$(PCH)
 TARGET_PCH_CPP_USE := $($(CXX_PREFIX)_PCH_CPP_USE)
 endif
 
-# Determine all source files in project directories:
-TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(SOURCE_PATHS)))
-TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(SOURCE_PATHS)))
+# Determine all source files in project directories or use custom files.
+# But ifndef not works properly to allow empty values:
+ifeq ($(origin TARGET_ASM_FILES),undefined)
 TARGET_ASM_FILES := $(wildcard *.asm $(addsuffix *.asm,$(SOURCE_PATHS)) *.s $(addsuffix *.s,$(SOURCE_PATHS)))
+endif
+ifeq ($(origin TARGET_C_FILES),undefined)
+TARGET_C_FILES := $(wildcard *.c $(addsuffix *.c,$(SOURCE_PATHS)))
+endif
+ifeq ($(origin TARGET_CPP_FILES),undefined)
+TARGET_CPP_FILES := $(wildcard *.cpp $(addsuffix *.cpp,$(SOURCE_PATHS)))
+endif
 
 # Object files without PCH and % pattern to free target from object paths dependency.
 # The one known linker have not entry point parameter and depends on file order,
