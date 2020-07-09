@@ -37,6 +37,10 @@
 #	recipe
 
 
+# Make допускает рекурсивный запуск. При этом вызов $(MAKE) наследует все переопределённые переменные и параметры, которые можно
+# отдельно получить из $(MAKEOVERRIDES), $(MAKEFLAGS) и $(MFLAGS). Цель находится отдельно в $(MAKECMDGOALS).
+
+
 # Define these macroses before include makefile. If there is no value, it is calculated automatically by default:
 #	CONFIGURATION - make argument to setup build configuration (default: release):
 #		debug
@@ -53,6 +57,7 @@
 #	LIBRARY_PATH - paths with static libraries in PATH environment variable format. You can include intermediate path also.
 #	LIBRARY_NAME - static library names used in build (optional and empty by default). Adjust to specific compiler.
 #	INCLUDE_PATH - paths with additional headers in PATH environment variable format.
+#	TARGET_PATHS - directories that must be created before assembly begins. Do not create if empty.
 
 #	TARGET_ENTRY - optional variable with entry point name for executable binaries (optional and empty by default).
 #	TARGET_PCH_C_HEADER - C header relative path for PCH.
@@ -396,7 +401,9 @@ ifndef SOURCE_PATHS
 endif
 
 # Каталоги, которые должны быть созданы до начала сборки:
-TARGET_PATHS := $(OUTPUT_PATH) $(INTERMEDIATE_PATH) $(addprefix $(INTERMEDIATE_PATH),$(SOURCE_PATHS))
+ifeq ($(origin TARGET_PATHS),undefined)
+	TARGET_PATHS := $(OUTPUT_PATH) $(INTERMEDIATE_PATH) $(addprefix $(INTERMEDIATE_PATH),$(SOURCE_PATHS))
+endif
 
 
 # Определение общепринятых расширений, которые нежелательно трактовать как-то по-другому:
