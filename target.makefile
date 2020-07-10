@@ -198,13 +198,13 @@ CL010_CXXFLAGS_RELEASE = $(CL010_CFLAGS_RELEASE)
 
 LIB010_ARFLAGS = /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 
-LINK010_LDFLAGS = /ERRORREPORT:PROMPT /NOLOGO /SUBSYSTEM:WINDOWS /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
+LINK010_LDFLAGS = /ERRORREPORT:PROMPT /NOLOGO /OUT:"$@" $(addprefix ",$(addsuffix ",$^))
 LINK010_LDFLAGS_DEBUG   = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" "ucrtd.lib" "vcruntimed.lib" /INCREMENTAL /DEBUG:FASTLINK
 LINK010_LDFLAGS_RELEASE = $(LINK_LIB_PATHS_FLAGS) $(LINK_LIB_NAMES_FLAGS) "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib" /INCREMENTAL:NO /OPT:REF /SAFESEH:NO /OPT:ICF /LTCG:incremental /NODEFAULTLIB
 LINK010_LDFLAGS_X86 = /MACHINE:X86
 LINK010_LDFLAGS_AMD64 = /MACHINE:X64
 LINK010_DLLFLAGS = /DLL
-LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE $(LINK_ENTRY_FLAGS) /MERGE:".rdata=.text" /TLBID:1
+LINK010_EXEFLAGS = /MANIFEST:NO /NXCOMPAT /PDB:"$(INTERMEDIATE_PATH)src.pdb" /DYNAMICBASE $(LINK_ENTRY_FLAGS) /TLBID:1
 LINK010_EXEFLAGS_AMD64 = /DRIVER
 
 
@@ -271,12 +271,12 @@ UPPERCASE = $(if $1,$$(subst $(word 1,$1),$(word 2,$1),$(call UPPERCASE,$(wordli
 # @param $2 Требуемая версия.
 # @param #3 Имя проверяемой утилиты без пути и расширения для отладки.
 # @return Минимальная поддерживаемая версия из множества. Пустое значение, если версия не поддерживается или не была корректно определена.
-CHECK_VERSION = $(if $2,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2)),$(info Can't determine $3 version))
+CHECK_VERSION = $(if $1,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2,$3)),$(info Can't determine $3 version))
 
 # Вычисление префикса флагов выбранной утилиты.
 # @param $1 Имя проверяемой утилиты без пути и расширения.
 # @return Префикс флагов, если проверяемая утилита соответствует выбранной.
-GET_PREFIX = $1$(call CHECK_VERSION,$(sort $($1_VERSION) $($1_VERSIONS)),$($1_VERSION),$1)
+GET_PREFIX = $1$(if $(filter $($1_VERSION),$($1_VERSIONS)),$($1_VERSION),$(call CHECK_VERSION,$(sort $($1_VERSION) $($1_VERSIONS)),$($1_VERSION),$1))
 
 # Упрощенное вычисление префикса флагов выбранной утилиты.
 # @param $1 Название переменной утилиты.
@@ -298,9 +298,24 @@ SET_FLAGS = $(eval $1:=$(call UPPERCASE,$(CASE_TABLE),$2))$(eval $1=$(addsuffix 
 # @param $3 Утилита по умолчанию.
 SET_TOOL = $(if $(filter file,$(origin $1)),,$(eval $1:=$3))$(if $($1_PREFIX),,$(call CHECK_TOOL,$1,$3))$(call SET_FLAGS,$2,$($1_PREFIX)_$2_$(CONFIGURATION) $($1_PREFIX)_$2_$(CONFIGURATION)_$(PLATFORM) $($1_PREFIX)_$2_$(PLATFORM) $($1_PREFIX)_$2)
 
-# Общая команда получения старшей версии из стандартного вывода. Производится поиск версии,
-# и дописываются ведущие ноли для последующей строковой сортировки из-за отсутствия числовой.
-PARSE_MAJOR_VERSION := sed -ne 's/^[^0-9]*\([0-9]\+\)\..*/\1/g; s/\b[0-9]\b/00&/p; s/\b[0-9]\{2\}\b/0&/p'
+# Общая команда получения старшей версии приложения из его стандартного вывода.
+# Версии и реализации SED имеют разный набор возможностей, поэтому будет использован POSIX-совместимый синтаксис.
+# Сначала пропускаются любые символы до первой цифры, далее набор цифр объединяется в группу, которой заменяется вся строка.
+# Заменённая строка передаётся на последующие обработчики, дописывающие ведущие нули для строковой сортировки.
+#  -e трактовать входящую строку как выражение, а не файл.
+#  -n подавляет стандартный вывод.
+# s// замена по шаблону, где разделительный символ после s можно заменить на другой.
+# [^] отрицание содержимого [].
+# {n} количество повторений соответствия.
+# ( ) захват группы для выделения определённой части строки.
+#  /p печатает подходящие строки дополнительно к стандартному выводу.
+#  /g операция выполняется над всеми найденными соответствиями.
+#   ; разбить выполнение на несколько команд.
+#   $ соответствие находится в конце строки (в POSIX не поддерживается).
+#   ^ соответствие начинается с начала строки.
+#   * символ встречается 0 или более раз.
+#   + символ встречается 1 или более раз (в POSIX не поддерживается).
+PARSE_MAJOR_VERSION := sed -ne 's/^[^0-9]*\([0-9][0-9]*\)\..*/\1_/g; s/^\([0-9]\{3\}[0-9]*\)_/\1/p; s/^\([0-9][0-9]\)_/0\1/p; s/^\([0-9]\)_/00\1/p'
 
 # Выбор набора утилит и установка их флагов.
 # @param $1 Множество с названием переменной утилиты, названием переменной флагов и значением по умолчанию.
@@ -364,15 +379,15 @@ ifeq ($(OS),Windows_NT)
 # Операционная система POSIX:
 else
 	UNAME_S := $(shell uname -s)
-	UNAME_P := $(shell uname -p)
+	UNAME_M := $(shell uname -m)
 	ifneq ($(filter Linux Darwin,$(UNAME_S)),)
 		HOST_SYSTEM := posix
 	endif
-	ifeq ($(UNAME_P),x86_64)
+	ifeq ($(UNAME_M),x86_64)
 		HOST_PLATFORM := amd64
-	else ifneq ($(filter %86, $(UNAME_P)),)
+	else ifneq ($(filter %86, $(UNAME_M)),)
 		HOST_PLATFORM := x86
-	else ifneq ($(filter arm%,$(UNAME_P)),)
+	else ifneq ($(filter arm%,$(UNAME_M)),)
 		HOST_PLATFORM := arm
 	endif
 endif
