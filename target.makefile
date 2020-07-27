@@ -58,6 +58,7 @@
 #	LIBRARY_NAME - static library names used in build (optional and empty by default). Adjust to specific compiler.
 #	INCLUDE_PATH - paths with additional headers in PATH environment variable format.
 #	TARGET_PATHS - directories that must be created before assembly begins. Do not create if empty.
+#	DEBUG - shows debug information if isn't empty.
 
 #	TARGET_ENTRY - optional variable with entry point name for executable binaries (optional and empty by default).
 #	TARGET_PCH_C_HEADER - C header relative path for PCH.
@@ -271,7 +272,7 @@ UPPERCASE = $(if $1,$$(subst $(word 1,$1),$(word 2,$1),$(call UPPERCASE,$(wordli
 # @param $2 Требуемая версия.
 # @param #3 Имя проверяемой утилиты без пути и расширения для отладки.
 # @return Минимальная поддерживаемая версия из множества. Пустое значение, если версия не поддерживается или не была корректно определена.
-CHECK_VERSION = $(if $1,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2,$3)),$(info Can't determine $3 version))
+CHECK_VERSION = $(if $1,$(if $(filter $2,$(word 2,$1)),$(word 1,$1),$(call CHECK_VERSION,$(wordlist 2,$(words $1),$1),$2,$3)),$(if $(DEBUG),$(info Can't determine $3 version),))
 
 # Вычисление префикса флагов выбранной утилиты.
 # @param $1 Имя проверяемой утилиты без пути и расширения.
@@ -623,7 +624,7 @@ $(addprefix $(OUTPUT_PATH)%,$(BIN) $(SYS)):
 print-%: ; @echo $* = $($*)
 
 # Подготовка сборки произведена. Вывод отладочной информации.
-ifdef DEBUG
+ifneq ($(DEBUG),)
 # Не скрывать вызовы:
 AT :=
 
