@@ -111,6 +111,10 @@
 #	CP - file copy command (default: cp -f).
 
 
+# Additional features:
+# Makefile does not support mixed letter case for sources extensions, only lower case.
+
+
 ########################################################################################################################
 #                                                Compilers configuration                                               #
 ########################################################################################################################
@@ -588,8 +592,10 @@ $(INTERMEDIATE_PATH)%.cpp$(OBJ): %.cpp $(TARGET_DEPEND) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$($(CXX_PREFIX)_CXX_ASM_RECIPE)
 
 # Native Assembler compilation:
-$(INTERMEDIATE_PATH)%.s$(OBJ): %.s
 $(INTERMEDIATE_PATH)%.asm$(OBJ): %.asm
+	$(AT)$(AS) $(ASFLAGS)
+
+$(INTERMEDIATE_PATH)%.s$(OBJ): %.s
 	$(AT)$(AS) $(ASFLAGS)
 
 
@@ -606,7 +612,7 @@ $(OUTPUT_PATH)%$(LIB): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP
 $(OUTPUT_PATH)%$(DLL): $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(LD) $(DLLFLAGS) $(LDFLAGS)
 
-# Executable rule:
+# Executable rule with and without extension:
 $(OUTPUT_PATH)%$(EXE) $(OUTPUT_PATH)%: $(TARGET_OBJS_FILES) $(TARGET_PCH_C_OBJ) $(TARGET_PCH_CPP_OBJ)
 	$(AT)$(LD) $(EXEFLAGS) $(LDFLAGS)
 
